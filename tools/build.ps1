@@ -5,57 +5,143 @@ $ErrorActionPreference = 'Stop'
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $PresetsPath = Join-Path $ProjectRoot 'CMakePresets.json'
 
+function Find-LatestFile {
+    param([string[]]$Patterns)
+
+    foreach ($pattern in $Patterns) {
+        $match = Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending |
+            Select-Object -First 1
+        if ($match) {
+            return $match.FullName
+        }
+    }
+    return $null
+}
+
 if (-not (Test-Path -LiteralPath $PresetsPath -PathType Leaf)) {
     Write-Error '请先使用STM32CubeMX生成CMake + GCC工程'
     exit 2
 }
 
 try {
-    $presets = Get-Content -LiteralPath $PresetsPath -Raw | ConvertFrom-Json
-} catch {
+    $presets = Get-Content -LiteralPath $PresetsPath -Raw -Encoding UTF8 | ConvertFrom-Json
+}
+catch {
     Write-Error ("无法读取 CMakePresets.json: {0}" -f $_.Exception.Message)
     exit 3
 }
 
+$configureNames = @($presets.configurePresets |
+        Where-Object { -not $_.hidden } |
+        ForEach-Object { $_.name })
 $buildNames = @($presets.buildPresets | ForEach-Object { $_.name })
-$configureNames = @($presets.configurePresets | ForEach-Object { $_.name })
-Write-Host ("可用 configure presets: {0}" -f $(if ($configureNames) { $configureNames -join ', ' } else { '无' }))
-Write-Host ("可用 build presets: {0}" -f $(if ($buildNames) { $buildNames -join ', ' } else { '无' }))
-
-$cmake = Get-Command cmake -ErrorAction SilentlyContinue
-if (-not $cmake) {
-    $cmakePath = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'stm32cube\bundles\cmake\*\bin\cmake.exe') -File -ErrorAction SilentlyContinue |
-        Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
-    if ($cmakePath) { $cmake = [pscustomobject]@{ Source = $cmakePath } }
+$selectedConfigure = $configureNames |
+    Where-Object { $_ -ieq 'Debug' } |
+    Select-Object -First 1
+if (-not $selectedConfigure) {
+    $selectedConfigure = $configureNames | Select-Object -First 1
 }
-if (-not $cmake) {
-    Write-Error '未找到 CMake。请在 STM32 Bundle Manager 中安装推荐稳定 Bundle。'
+$selectedBuild = $buildNames |
+    Where-Object { $_ -ieq 'Debug' } |
+    Select-Object -First 1
+if (-not $selectedBuild) {
+    $selectedBuild = $buildNames | Select-Object -First 1
+}
+if (-not $selectedConfigure -or -not $selectedBuild) {
+    Write-Error 'CMakePresets.json 中缺少可用的 configure 或 build preset。'
     exit 4
 }
 
-$selectedBuild = $buildNames | Where-Object { $_ -ieq 'debug' } | Select-Object -First 1
-if (-not $selectedBuild) { $selectedBuild = $buildNames | Select-Object -First 1 }
+$cmakeCommand = Get-Command cmake -ErrorAction SilentlyContinue
+$cmakePath = if ($cmakeCommand) { $cmakeCommand.Source } else {
+    Find-LatestFile @(
+        (Join-Path $env:LOCALAPPDATA 'stm32cube\bundles\cmake\*\bin\cmake.exe')
+    )
+}
+if (-not $cmakePath) {
+    Write-Error '未找到 CMake。请在 STM32 Bundle Manager 中安装推荐稳定 Bundle。'
+    exit 5
+}
+
+Write-Host ("可用 configure presets: {0}" -f ($configureNames -join ', '))
+Write-Host ("可用 build presets: {0}" -f ($buildNames -join ', '))
+Write-Host "执行 configure preset: $selectedConfigure"
 
 Push-Location $ProjectRoot
 try {
-    if ($selectedBuild) {
-        Write-Host ("执行 build preset: {0}" -f $selectedBuild)
-        & $cmake.Source --build --preset $selectedBuild
-    } else {
-        $selectedConfigure = $configureNames | Where-Object { $_ -ieq 'debug' } | Select-Object -First 1
-        if (-not $selectedConfigure) { $selectedConfigure = $configureNames | Select-Object -First 1 }
-        if (-not $selectedConfigure) {
-            Write-Error 'CMakePresets.json 中没有可用 preset。'
-            exit 5
+    & $cmakePath --preset $selectedConfigure
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+
+    Write-Host "执行 build preset: $selectedBuild"
+    & $cmakePath --build --preset $selectedBuild
+    if ($LASTEXITCODE -ne 0) {
+        exit $LASTEXITCODE
+    }
+
+    $elf = Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'build') -Recurse -File `
+            -Filter '*.elf' -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+    if (-not $elf) {
+        Write-Error '构建命令成功，但未找到 ELF 文件。'
+        exit 6
+    }
+
+    $toolPatterns = @(
+        (Join-Path $env:LOCALAPPDATA 'stm32cube\bundles\gnu-tools-for-stm32\*\bin')
+        'C:\Program Files (x86)\Arm GNU Toolchain arm-none-eabi\*\bin'
+        'C:\Program Files\Arm GNU Toolchain arm-none-eabi\*\bin'
+    )
+    $sizePath = Find-LatestFile ($toolPatterns | ForEach-Object {
+            Join-Path $_ 'arm-none-eabi-size.exe'
+        })
+    $objcopyPath = Find-LatestFile ($toolPatterns | ForEach-Object {
+            Join-Path $_ 'arm-none-eabi-objcopy.exe'
+        })
+
+    $artifactBase = Join-Path $elf.DirectoryName $elf.BaseName
+    $hexPath = "$artifactBase.hex"
+    $binPath = "$artifactBase.bin"
+    if ($objcopyPath) {
+        & $objcopyPath -O ihex $elf.FullName $hexPath
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
         }
-        Write-Host ("执行 configure preset: {0}" -f $selectedConfigure)
-        & $cmake.Source --preset $selectedConfigure
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host '未定义 build preset，使用 cmake --build --preset 不安全；请让 CubeMX 重新生成完整 presets。'
-            exit 6
+        & $objcopyPath -O binary $elf.FullName $binPath
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
         }
     }
-    exit $LASTEXITCODE
-} finally {
+    else {
+        Write-Warning '未找到 arm-none-eabi-objcopy；不会自动生成 HEX/BIN。'
+    }
+
+    $map = Get-ChildItem -LiteralPath $elf.DirectoryName -File -Filter '*.map' `
+            -ErrorAction SilentlyContinue |
+        Sort-Object LastWriteTime -Descending |
+        Select-Object -First 1
+
+    Write-Host "ELF: $($elf.FullName)"
+    Write-Host ("MAP: {0}" -f $(if ($map) { $map.FullName } else { '未生成' }))
+    Write-Host ("HEX: {0}" -f $(if (Test-Path -LiteralPath $hexPath) { $hexPath } else { '未生成' }))
+    Write-Host ("BIN: {0}" -f $(if (Test-Path -LiteralPath $binPath) { $binPath } else { '未生成' }))
+
+    if ($sizePath) {
+        Write-Host '内存占用 (arm-none-eabi-size):'
+        & $sizePath $elf.FullName
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
+    }
+    else {
+        Write-Warning '未找到 arm-none-eabi-size，无法输出段大小。'
+    }
+
+    exit 0
+}
+finally {
     Pop-Location
 }

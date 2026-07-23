@@ -52,6 +52,9 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
 )
 
+# Keep user-maintained application sources separate from CubeMX generated CMake.
+include(cmake/user_sources.cmake)
+
 # Add project symbols (macros)
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined symbols
