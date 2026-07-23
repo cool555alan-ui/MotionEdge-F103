@@ -5,6 +5,8 @@
 void TestSoftwareTimer_Run(TestContext_t *context);
 void TestAppStatus_Run(TestContext_t *context);
 void TestLogger_Run(TestContext_t *context);
+void TestI2cScanner_Run(TestContext_t *context);
+void TestMpu6050_Run(TestContext_t *context);
 
 void Test_RecordAssertion(TestContext_t *context,
                           bool condition,
@@ -32,6 +34,8 @@ int main(void)
     TestSoftwareTimer_Run(&context);
     TestAppStatus_Run(&context);
     TestLogger_Run(&context);
+    TestI2cScanner_Run(&context);
+    TestMpu6050_Run(&context);
 
     (void)printf("Host assertions: total=%u passed=%u failed=%u\n",
                  context.assertion_count,
