@@ -129,3 +129,22 @@ Mpu6050Status_t Mpu6050_ReadRaw(Mpu6050_t *device, Mpu6050RawData_t *raw_data)
     raw_data->gyro_z = Mpu6050_DecodeSignedWord(frame[12], frame[13]);
     return MPU6050_OK;
 }
+
+
+bool Mpu6050_ScaleRaw(const Mpu6050RawData_t *raw_data,
+                      Mpu6050ScaledSample_t *scaled_sample)
+{
+    if ((raw_data == NULL) || (scaled_sample == NULL))
+    {
+        return false;
+    }
+
+    /* MPU6050复位默认量程：加速度16384 LSB/g，角速度131 LSB/(deg/s)。 */
+    scaled_sample->accel_mg_x = ((int32_t)raw_data->accel_x * 1000) / 16384;
+    scaled_sample->accel_mg_y = ((int32_t)raw_data->accel_y * 1000) / 16384;
+    scaled_sample->accel_mg_z = ((int32_t)raw_data->accel_z * 1000) / 16384;
+    scaled_sample->gyro_mdps_x = ((int32_t)raw_data->gyro_x * 1000) / 131;
+    scaled_sample->gyro_mdps_y = ((int32_t)raw_data->gyro_y * 1000) / 131;
+    scaled_sample->gyro_mdps_z = ((int32_t)raw_data->gyro_z * 1000) / 131;
+    return true;
+}

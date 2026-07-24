@@ -8,20 +8,28 @@
 #include "bsp_i2c.h"
 #include "bsp_led.h"
 #include "bsp_uart.h"
+#include "calibration_service.h"
+#include "csv_telemetry.h"
 #include "health_service.h"
 #include "i2c_scanner.h"
 #include "logger.h"
+#include "motion_service.h"
 #include "mpu6050.h"
+#include "sensor_service.h"
 #include "software_timer.h"
 
 static SoftwareTimer_t s_heartbeat_timer;
 static SoftwareTimer_t s_health_report_timer;
-static SoftwareTimer_t s_sensor_read_timer;
+static SoftwareTimer_t s_attitude_report_timer;
+static SoftwareTimer_t s_calibration_report_timer;
 static I2cScanner_t s_i2c_scanner;
 static Mpu6050_t s_mpu6050;
 static bool s_app_initialized = false;
 static bool s_sensor_ready = false;
 static uint8_t s_mpu6050_address = 0U;
+static bool s_csv_header_written = false;
+static CalibrationState_t s_last_calibration_state = CALIBRATION_STATE_IDLE;
+static char s_csv_buffer[APP_CSV_BUFFER_SIZE];
 
 static bool App_UartLogWriter(const uint8_t *data, size_t length)
 {
@@ -73,7 +81,7 @@ static void App_LogStartupInformation(void)
     App_RecordLogResult(Logger_Write(LOG_LEVEL_INFO, "APP", "Hardware validation: pending"));
 }
 
-static void App_CompleteI2cScan(void)
+static void App_CompleteI2cScan(uint32_t now_ms)
 {
     uint8_t identity = 0U;
 
@@ -118,12 +126,19 @@ static void App_CompleteI2cScan(void)
             Logger_Write(LOG_LEVEL_ERROR, "MPU6050", "wake failed"));
         return;
     }
+    if (!SensorService_Init(&s_mpu6050, now_ms))
+    {
+        (void)AppStatus_SetState(APP_STATE_DEGRADED);
+        App_RecordLogResult(
+            Logger_Write(LOG_LEVEL_ERROR, "SENSOR", "service init failed"));
+        return;
+    }
 
     s_sensor_ready = true;
     App_RecordLogResult(Logger_Write(LOG_LEVEL_INFO, "MPU6050", "sensor ready"));
 }
 
-static void App_RunI2cScanStep(void)
+static void App_RunI2cScanStep(uint32_t now_ms)
 {
     I2cScanStepResult_t result;
 
@@ -145,33 +160,105 @@ static void App_RunI2cScanStep(void)
     }
     if (result.complete)
     {
-        App_CompleteI2cScan();
+        App_CompleteI2cScan(now_ms);
     }
 }
 
-static void App_ReadAndLogSensor(void)
+static void App_ReportCalibration(void)
 {
-    Mpu6050RawData_t raw_data;
+    CalibrationResult_t result;
+    CalibrationState_t state = CalibrationService_GetState();
 
-    if (Mpu6050_ReadRaw(&s_mpu6050, &raw_data) != MPU6050_OK)
+    if (!MotionService_GetCalibration(&result))
     {
-        s_sensor_ready = false;
-        (void)AppStatus_SetState(APP_STATE_DEGRADED);
-        App_RecordLogResult(
-            Logger_Write(LOG_LEVEL_ERROR, "MPU6050", "raw read failed"));
         return;
     }
+    if (state == CALIBRATION_STATE_COLLECTING)
+    {
+        App_RecordLogResult(
+            Logger_WriteFormatted(LOG_LEVEL_INFO,
+                                  "CAL",
+                                  "state=COLLECTING accepted=%" PRIu32
+                                  " rejected=%" PRIu32 " target=%u",
+                                  result.accepted_samples,
+                                  result.rejected_samples,
+                                  (unsigned int)APP_CALIBRATION_SAMPLE_COUNT));
+    }
+    else if ((state == CALIBRATION_STATE_COMPLETE) &&
+             (s_last_calibration_state != CALIBRATION_STATE_COMPLETE))
+    {
+        App_RecordLogResult(
+            Logger_WriteFormatted(LOG_LEVEL_INFO,
+                                  "CAL",
+                                  "complete gx_bias_mdps=%" PRId32
+                                  " gy_bias_mdps=%" PRId32 " gz_bias_mdps=%" PRId32,
+                                  result.gyro_bias_mdps_x,
+                                  result.gyro_bias_mdps_y,
+                                  result.gyro_bias_mdps_z));
+    }
+    else if ((state == CALIBRATION_STATE_FAILED) &&
+             (s_last_calibration_state != CALIBRATION_STATE_FAILED))
+    {
+        App_RecordLogResult(Logger_Write(LOG_LEVEL_ERROR, "CAL", "calibration failed"));
+        (void)AppStatus_SetState(APP_STATE_DEGRADED);
+    }
+    s_last_calibration_state = state;
+}
 
-    App_RecordLogResult(
-        Logger_WriteFormatted(LOG_LEVEL_INFO,
-                              "MPU6050",
-                              "accel=%d,%d,%d gyro=%d,%d,%d",
-                              (int)raw_data.accel_x,
-                              (int)raw_data.accel_y,
-                              (int)raw_data.accel_z,
-                              (int)raw_data.gyro_x,
-                              (int)raw_data.gyro_y,
-                              (int)raw_data.gyro_z));
+static void App_WriteTelemetry(void)
+{
+    MotionFrame_t frame;
+    size_t written;
+
+    if (!MotionService_GetLatestFrame(&frame))
+    {
+        return;
+    }
+    if (!s_csv_header_written)
+    {
+        if (!CsvTelemetry_WriteHeader(s_csv_buffer, sizeof(s_csv_buffer), &written) ||
+            (BspUart_Write((const uint8_t *)s_csv_buffer, written) != BSP_UART_OK))
+        {
+            HealthService_RecordLogFailure();
+            return;
+        }
+        s_csv_header_written = true;
+    }
+    if (!CsvTelemetry_WriteFrame(
+            &frame, s_csv_buffer, sizeof(s_csv_buffer), &written) ||
+        (BspUart_Write((const uint8_t *)s_csv_buffer, written) != BSP_UART_OK))
+    {
+        HealthService_RecordLogFailure();
+    }
+}
+
+static void App_RunMotionPipeline(uint32_t now_ms)
+{
+    MotionServiceState_t motion_state;
+
+    if (!s_sensor_ready)
+    {
+        return;
+    }
+    MotionService_RunOnce(now_ms);
+    motion_state = MotionService_GetState();
+    if (motion_state == MOTION_SERVICE_STATE_DEGRADED)
+    {
+        (void)AppStatus_SetState(APP_STATE_DEGRADED);
+    }
+    else if ((motion_state == MOTION_SERVICE_STATE_RUNNING) &&
+             (AppStatus_GetState() == APP_STATE_DEGRADED))
+    {
+        (void)AppStatus_SetState(APP_STATE_RUNNING);
+    }
+    if (SoftwareTimer_IsDue(&s_calibration_report_timer, now_ms))
+    {
+        App_ReportCalibration();
+    }
+    if (SoftwareTimer_IsDue(&s_attitude_report_timer, now_ms))
+    {
+        App_WriteTelemetry();
+    }
 }
 
 bool App_Init(uint32_t now_ms)
@@ -204,8 +291,12 @@ bool App_Init(uint32_t now_ms)
     }
     if (!SoftwareTimer_Init(&s_heartbeat_timer, now_ms, APP_HEARTBEAT_PERIOD_MS) ||
         !SoftwareTimer_Init(&s_health_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
-        !SoftwareTimer_Init(&s_sensor_read_timer, now_ms, APP_SENSOR_READ_PERIOD_MS) ||
-        !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe))
+        !SoftwareTimer_Init(
+            &s_attitude_report_timer, now_ms, APP_ATTITUDE_REPORT_PERIOD_MS) ||
+        !SoftwareTimer_Init(
+            &s_calibration_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
+        !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe) ||
+        !MotionService_Init(now_ms) || !MotionService_StartCalibration())
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
@@ -220,6 +311,8 @@ bool App_Init(uint32_t now_ms)
     s_app_initialized = true;
     s_sensor_ready = false;
     s_mpu6050_address = 0U;
+    s_csv_header_written = false;
+    s_last_calibration_state = CALIBRATION_STATE_IDLE;
     App_LogStartupInformation();
     return true;
 }
@@ -234,7 +327,8 @@ void App_RunOnce(uint32_t now_ms)
     }
 
     HealthService_RecordLoop(now_ms);
-    App_RunI2cScanStep();
+    App_RunI2cScanStep(now_ms);
+    App_RunMotionPipeline(now_ms);
 
     if (SoftwareTimer_IsDue(&s_heartbeat_timer, now_ms))
     {
@@ -246,11 +340,6 @@ void App_RunOnce(uint32_t now_ms)
         {
             (void)AppStatus_SetState(APP_STATE_DEGRADED);
         }
-    }
-
-    if (s_sensor_ready && SoftwareTimer_IsDue(&s_sensor_read_timer, now_ms))
-    {
-        App_ReadAndLogSensor();
     }
 
     if (SoftwareTimer_IsDue(&s_health_report_timer, now_ms) &&

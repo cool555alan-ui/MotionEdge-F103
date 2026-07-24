@@ -56,6 +56,7 @@ void TestMpu6050_Run(TestContext_t *context)
 {
     Mpu6050_t device = {0};
     Mpu6050RawData_t raw_data = {0};
+    Mpu6050ScaledSample_t scaled_sample = {0};
     uint8_t identity = 0U;
 
     TEST_EXPECT(context,
@@ -124,4 +125,14 @@ void TestMpu6050_Run(TestContext_t *context)
     TEST_EXPECT(context, Mpu6050_Wake(&device) == MPU6050_ERROR_BUS);
     TEST_EXPECT(context,
                 Mpu6050_ReadRaw(&device, NULL) == MPU6050_ERROR_INVALID_ARG);
+    raw_data =
+        (Mpu6050RawData_t){16384, -16384, 8192, 131, -131, 262};
+    TEST_EXPECT(context, Mpu6050_ScaleRaw(&raw_data, &scaled_sample));
+    TEST_EXPECT(context, scaled_sample.accel_mg_x == 1000);
+    TEST_EXPECT(context, scaled_sample.accel_mg_y == -1000);
+    TEST_EXPECT(context, scaled_sample.accel_mg_z == 500);
+    TEST_EXPECT(context, scaled_sample.gyro_mdps_x == 1000);
+    TEST_EXPECT(context, scaled_sample.gyro_mdps_y == -1000);
+    TEST_EXPECT(context, scaled_sample.gyro_mdps_z == 2000);
+    TEST_EXPECT(context, !Mpu6050_ScaleRaw(NULL, &scaled_sample));
 }

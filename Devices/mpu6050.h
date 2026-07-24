@@ -39,6 +39,16 @@ typedef struct
 
 typedef struct
 {
+    int32_t accel_mg_x;
+    int32_t accel_mg_y;
+    int32_t accel_mg_z;
+    int32_t gyro_mdps_x;
+    int32_t gyro_mdps_y;
+    int32_t gyro_mdps_z;
+} Mpu6050ScaledSample_t;
+
+typedef struct
+{
     Mpu6050BusRead_t read;
     Mpu6050BusWrite_t write;
     uint8_t address;
@@ -54,5 +64,9 @@ Mpu6050Status_t Mpu6050_ReadWhoAmI(Mpu6050_t *device, uint8_t *identity);
 Mpu6050Status_t Mpu6050_VerifyIdentity(Mpu6050_t *device);
 Mpu6050Status_t Mpu6050_Wake(Mpu6050_t *device);
 Mpu6050Status_t Mpu6050_ReadRaw(Mpu6050_t *device, Mpu6050RawData_t *raw_data);
+
+/** 按默认±2 g和±250 dps量程将原始值转换为mg和mdps。 */
+bool Mpu6050_ScaleRaw(const Mpu6050RawData_t *raw_data,
+                      Mpu6050ScaledSample_t *scaled_sample);
 
 #endif /* MPU6050_H */

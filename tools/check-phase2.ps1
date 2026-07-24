@@ -73,12 +73,20 @@ try {
 
     $appText = Get-Content -LiteralPath (Join-Path $ProjectRoot 'App\app_main.c') `
         -Raw -Encoding UTF8
+    $sensorServicePath = Join-Path $ProjectRoot 'Services\sensor_service.c'
+    $sensorText = if (Test-Path -LiteralPath $sensorServicePath) {
+        Get-Content -LiteralPath $sensorServicePath -Raw -Encoding UTF8
+    }
+    else {
+        ''
+    }
     Add-Check 'I2C scan integration' ($appText -match '\bI2cScanner_Step\s*\(') `
         'single-step scan in main loop'
     Add-Check 'WHO_AM_I integration' ($appText -match '\bMpu6050_ReadWhoAmI\s*\(') `
         'application reads sensor identity'
-    Add-Check 'Raw sample integration' ($appText -match '\bMpu6050_ReadRaw\s*\(') `
-        'application reads raw samples periodically'
+    Add-Check 'Raw sample integration' `
+        (($appText + $sensorText) -match '\bMpu6050_ReadRaw\s*\(') `
+        'application sensor pipeline reads raw samples periodically'
 
     $savedErrorActionPreference = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'

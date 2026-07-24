@@ -7,6 +7,11 @@ void TestAppStatus_Run(TestContext_t *context);
 void TestLogger_Run(TestContext_t *context);
 void TestI2cScanner_Run(TestContext_t *context);
 void TestMpu6050_Run(TestContext_t *context);
+void TestLowPassFilter_Run(TestContext_t *context);
+void TestAttitudeEstimator_Run(TestContext_t *context);
+void TestCalibrationService_Run(TestContext_t *context);
+void TestMotionService_Run(TestContext_t *context);
+void TestCsvTelemetry_Run(TestContext_t *context);
 
 void Test_RecordAssertion(TestContext_t *context,
                           bool condition,
@@ -36,6 +41,11 @@ int main(void)
     TestLogger_Run(&context);
     TestI2cScanner_Run(&context);
     TestMpu6050_Run(&context);
+    TestLowPassFilter_Run(&context);
+    TestAttitudeEstimator_Run(&context);
+    TestCalibrationService_Run(&context);
+    TestMotionService_Run(&context);
+    TestCsvTelemetry_Run(&context);
 
     (void)printf("Host assertions: total=%u passed=%u failed=%u\n",
                  context.assertion_count,

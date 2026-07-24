@@ -13,15 +13,27 @@ add_executable(firmware_host_tests
     test_logger.c
     test_i2c_scanner.c
     test_mpu6050.c
+    test_low_pass_filter.c
+    test_attitude_estimator.c
+    test_calibration_service.c
+    test_motion_service.c
+    test_csv_telemetry.c
+    ../../Algorithms/low_pass_filter.c
+    ../../Algorithms/attitude_estimator.c
     ../../Common/software_timer.c
     ../../App/app_status.c
     ../../Devices/mpu6050.c
     ../../Middleware/logger.c
+    ../../Middleware/csv_telemetry.c
     ../../Services/i2c_scanner.c
+    ../../Services/calibration_service.c
+    ../../Services/motion_service.c
+    ../../Services/sensor_service.c
 )
 
 target_include_directories(firmware_host_tests PRIVATE
     .
+    ../../Algorithms
     ../../App
     ../../Common
     ../../Devices
@@ -33,6 +45,10 @@ if(MSVC)
     target_compile_options(firmware_host_tests PRIVATE /W4)
 else()
     target_compile_options(firmware_host_tests PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+if(NOT MSVC)
+    target_link_libraries(firmware_host_tests PRIVATE m)
 endif()
 
 enable_testing()

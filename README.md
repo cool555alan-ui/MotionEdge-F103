@@ -44,6 +44,24 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050 的嵌入式运动控制基�
 
 详细说明见 [第二阶段 I²C 与 MPU6050](docs/phase-02-i2c-mpu6050.md)。
 
+## Phase 3: Calibration and Attitude Pipeline
+
+第三阶段完成了：
+
+- 100 Hz缩放样本采集与数据质量检查
+- 500样本非阻塞静止校准和RAM偏差结果
+- 六轴一阶低通滤波
+- 加速度Roll/Pitch、陀螺仪积分和互补滤波
+- 0.01°整数姿态输出和100 ms限频CSV遥测
+- Python模拟、校验、汇总、回放和串口记录工具
+- C主机算法测试和Python工具测试
+- STM32 CMake Debug交叉编译
+
+主机模拟和算法测试已经完成，STM32交叉编译已经完成。当前没有连接硬件，真实零偏、
+姿态精度、传感器噪声、温漂、漂移、USART1输出和ST-LINK烧录仍待实机验证。
+
+详细说明见[第三阶段校准与姿态数据链](docs/phase-03-calibration-attitude.md)。
+
 ## 常用命令
 
 ```powershell
@@ -51,4 +69,6 @@ powershell -ExecutionPolicy Bypass -File .\tools\test-host.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\build.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase1.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase2.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\test-python.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\check-phase3.ps1
 ```
