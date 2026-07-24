@@ -23,5 +23,7 @@ void SensorService_RunOnce(uint32_t now_ms);
 
 /** 复制最近一次采样尝试，包括总线失败状态。 */
 bool SensorService_GetLatestSample(SensorSample_t *sample);
+/** 运行时更新采样周期，范围由ConfigService校验。 */
+bool SensorService_SetSamplePeriod(uint16_t period_ms);
 
 #endif /* SENSOR_SERVICE_H */

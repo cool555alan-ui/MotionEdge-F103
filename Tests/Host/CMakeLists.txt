@@ -18,6 +18,7 @@ add_executable(firmware_host_tests
     test_calibration_service.c
     test_motion_service.c
     test_csv_telemetry.c
+    test_protocol.c
     ../../Algorithms/low_pass_filter.c
     ../../Algorithms/attitude_estimator.c
     ../../Common/software_timer.c
@@ -25,10 +26,18 @@ add_executable(firmware_host_tests
     ../../Devices/mpu6050.c
     ../../Middleware/logger.c
     ../../Middleware/csv_telemetry.c
+    ../../Middleware/crc16.c
+    ../../Middleware/byte_ring_buffer.c
+    ../../Middleware/protocol_frame.c
+    ../../Middleware/protocol_parser.c
     ../../Services/i2c_scanner.c
+    ../../Services/health_service.c
     ../../Services/calibration_service.c
     ../../Services/motion_service.c
     ../../Services/sensor_service.c
+    ../../Services/config_service.c
+    ../../Services/command_service.c
+    ../../Services/telemetry_service.c
 )
 
 target_include_directories(firmware_host_tests PRIVATE
@@ -39,6 +48,10 @@ target_include_directories(firmware_host_tests PRIVATE
     ../../Devices
     ../../Middleware
     ../../Services
+)
+
+target_compile_definitions(firmware_host_tests PRIVATE
+    PROTOCOL_VECTOR_PATH="${CMAKE_CURRENT_SOURCE_DIR}/../Fixtures/protocol_vectors.json"
 )
 
 if(MSVC)

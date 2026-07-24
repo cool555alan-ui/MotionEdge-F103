@@ -68,6 +68,8 @@ bool AttitudeEstimator_Init(AttitudeEstimator_t *estimator)
     estimator->gyro_roll_deg = 0.0F;
     estimator->gyro_pitch_deg = 0.0F;
     estimator->last_timestamp_ms = 0U;
+    estimator->gyro_weight =
+        (float)APP_COMPLEMENTARY_GYRO_WEIGHT_MILLI / 1000.0F;
     estimator->initialized = false;
     return true;
 }
@@ -147,7 +149,7 @@ bool AttitudeEstimator_Update(AttitudeEstimator_t *estimator,
         estimator->roll_deg + (((float)sample->gyro_mdps_x / 1000.0F) * dt_seconds);
     predicted_pitch =
         estimator->pitch_deg + (((float)sample->gyro_mdps_y / 1000.0F) * dt_seconds);
-    gyro_weight = (float)APP_COMPLEMENTARY_GYRO_WEIGHT_MILLI / 1000.0F;
+    gyro_weight = estimator->gyro_weight;
     accel_weight = 1.0F - gyro_weight;
 
     estimator->gyro_roll_deg = predicted_roll;
@@ -158,4 +160,16 @@ bool AttitudeEstimator_Update(AttitudeEstimator_t *estimator,
         (gyro_weight * predicted_pitch) + (accel_weight * estimator->accel_pitch_deg);
     estimator->last_timestamp_ms = timestamp_ms;
     return AttitudeEstimator_WriteOutput(estimator, output);
+}
+
+bool AttitudeEstimator_SetGyroWeight(AttitudeEstimator_t *estimator,
+                                    float gyro_weight)
+{
+    if ((estimator == NULL) || !isfinite(gyro_weight) ||
+        (gyro_weight < 0.5F) || (gyro_weight > 0.999F))
+    {
+        return false;
+    }
+    estimator->gyro_weight = gyro_weight;
+    return true;
 }

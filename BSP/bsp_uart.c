@@ -59,3 +59,30 @@ bool BspUart_IsReady(void)
 {
     return s_uart_ready;
 }
+
+BspUartStatus_t BspUart_TryReadByte(uint8_t *byte, bool *received)
+{
+    HAL_StatusTypeDef status;
+
+    if ((byte == NULL) || (received == NULL))
+    {
+        return BSP_UART_ERROR_INVALID_ARG;
+    }
+    *received = false;
+    if (!s_uart_ready)
+    {
+        return BSP_UART_ERROR_NOT_READY;
+    }
+    /* 零超时短轮询；FreeRTOS阶段迁移为中断或DMA接收。 */
+    status = HAL_UART_Receive(&huart1, byte, 1U, 0U);
+    if (status == HAL_OK)
+    {
+        *received = true;
+        return BSP_UART_OK;
+    }
+    if (status == HAL_TIMEOUT)
+    {
+        return BSP_UART_OK;
+    }
+    return (status == HAL_BUSY) ? BSP_UART_ERROR_NOT_READY : BSP_UART_ERROR_HAL;
+}

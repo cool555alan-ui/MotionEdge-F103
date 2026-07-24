@@ -72,5 +72,8 @@ const char *MotionService_StateToString(MotionServiceState_t state);
 
 /** 返回成功、异常、丢弃和恢复统计。 */
 bool MotionService_GetStats(MotionServiceStats_t *stats);
+/** 运行时更新低通和互补滤波权重。 */
+bool MotionService_SetFilterConfig(uint16_t alpha_milli,
+                                   uint16_t gyro_weight_milli);
 
 #endif /* MOTION_SERVICE_H */

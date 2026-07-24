@@ -375,3 +375,26 @@ bool MotionService_GetStats(MotionServiceStats_t *stats)
     *stats = s_stats;
     return true;
 }
+
+bool MotionService_SetFilterConfig(uint16_t alpha_milli,
+                                   uint16_t gyro_weight_milli)
+{
+    uint32_t index;
+    float alpha = (float)alpha_milli / 1000.0F;
+    float gyro_weight = (float)gyro_weight_milli / 1000.0F;
+
+    if ((alpha_milli < 1U) || (alpha_milli > 1000U) ||
+        (gyro_weight_milli < 500U) || (gyro_weight_milli > 999U))
+    {
+        return false;
+    }
+    if (s_initialized)
+    {
+        for (index = 0U; index < 6U; ++index)
+        {
+            s_filters[index].alpha = alpha;
+        }
+        return AttitudeEstimator_SetGyroWeight(&s_estimator, gyro_weight);
+    }
+    return true;
+}

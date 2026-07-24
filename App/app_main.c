@@ -9,6 +9,7 @@
 #include "bsp_led.h"
 #include "bsp_uart.h"
 #include "calibration_service.h"
+#include "communication_service.h"
 #include "csv_telemetry.h"
 #include "health_service.h"
 #include "i2c_scanner.h"
@@ -251,11 +252,13 @@ static void App_RunMotionPipeline(uint32_t now_ms)
     {
         (void)AppStatus_SetState(APP_STATE_RUNNING);
     }
-    if (SoftwareTimer_IsDue(&s_calibration_report_timer, now_ms))
+    if (!CommunicationService_IsProtocolMode() &&
+        SoftwareTimer_IsDue(&s_calibration_report_timer, now_ms))
     {
         App_ReportCalibration();
     }
-    if (SoftwareTimer_IsDue(&s_attitude_report_timer, now_ms))
+    if (!CommunicationService_IsProtocolMode() &&
+        SoftwareTimer_IsDue(&s_attitude_report_timer, now_ms))
     {
         App_WriteTelemetry();
     }
@@ -296,7 +299,8 @@ bool App_Init(uint32_t now_ms)
         !SoftwareTimer_Init(
             &s_calibration_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
         !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe) ||
-        !MotionService_Init(now_ms) || !MotionService_StartCalibration())
+        !MotionService_Init(now_ms) || !MotionService_StartCalibration() ||
+        !CommunicationService_Init(now_ms))
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
@@ -329,6 +333,7 @@ void App_RunOnce(uint32_t now_ms)
     HealthService_RecordLoop(now_ms);
     App_RunI2cScanStep(now_ms);
     App_RunMotionPipeline(now_ms);
+    CommunicationService_RunOnce(now_ms);
 
     if (SoftwareTimer_IsDue(&s_heartbeat_timer, now_ms))
     {
@@ -342,7 +347,8 @@ void App_RunOnce(uint32_t now_ms)
         }
     }
 
-    if (SoftwareTimer_IsDue(&s_health_report_timer, now_ms) &&
+    if (!CommunicationService_IsProtocolMode() &&
+        SoftwareTimer_IsDue(&s_health_report_timer, now_ms) &&
         HealthService_GetSnapshot(&snapshot))
     {
         App_RecordLogResult(

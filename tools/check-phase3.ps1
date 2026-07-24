@@ -45,8 +45,8 @@ try {
 
     $version = Get-Content -LiteralPath (Join-Path $ProjectRoot 'App\app_version.h') `
         -Raw -Encoding UTF8
-    Add-Check 'Version 0.3.0' ($version -match 'APP_VERSION_STRING\s+"0\.3\.0"') `
-        'firmware version'
+    Add-Check 'Version at least 0.3.0' `
+        ($version -match 'APP_VERSION_STRING\s+"0\.[34]\.0"') 'firmware version'
 
     $userFiles = Get-UserFiles
     $dynamic = @($userFiles |

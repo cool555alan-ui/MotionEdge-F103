@@ -12,6 +12,7 @@ void TestAttitudeEstimator_Run(TestContext_t *context);
 void TestCalibrationService_Run(TestContext_t *context);
 void TestMotionService_Run(TestContext_t *context);
 void TestCsvTelemetry_Run(TestContext_t *context);
+void TestProtocol_Run(TestContext_t *context);
 
 void Test_RecordAssertion(TestContext_t *context,
                           bool condition,
@@ -46,6 +47,7 @@ int main(void)
     TestCalibrationService_Run(&context);
     TestMotionService_Run(&context);
     TestCsvTelemetry_Run(&context);
+    TestProtocol_Run(&context);
 
     (void)printf("Host assertions: total=%u passed=%u failed=%u\n",
                  context.assertion_count,

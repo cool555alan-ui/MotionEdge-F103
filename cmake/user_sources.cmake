@@ -10,11 +10,19 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Devices/mpu6050.c
     ${CMAKE_SOURCE_DIR}/Middleware/logger.c
     ${CMAKE_SOURCE_DIR}/Middleware/csv_telemetry.c
+    ${CMAKE_SOURCE_DIR}/Middleware/crc16.c
+    ${CMAKE_SOURCE_DIR}/Middleware/byte_ring_buffer.c
+    ${CMAKE_SOURCE_DIR}/Middleware/protocol_frame.c
+    ${CMAKE_SOURCE_DIR}/Middleware/protocol_parser.c
     ${CMAKE_SOURCE_DIR}/Services/health_service.c
     ${CMAKE_SOURCE_DIR}/Services/i2c_scanner.c
     ${CMAKE_SOURCE_DIR}/Services/calibration_service.c
     ${CMAKE_SOURCE_DIR}/Services/motion_service.c
     ${CMAKE_SOURCE_DIR}/Services/sensor_service.c
+    ${CMAKE_SOURCE_DIR}/Services/config_service.c
+    ${CMAKE_SOURCE_DIR}/Services/telemetry_service.c
+    ${CMAKE_SOURCE_DIR}/Services/command_service.c
+    ${CMAKE_SOURCE_DIR}/Services/communication_service.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

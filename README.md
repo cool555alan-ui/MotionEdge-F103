@@ -62,6 +62,19 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050 的嵌入式运动控制基�
 
 详细说明见[第三阶段校准与姿态数据链](docs/phase-03-calibration-attitude.md)。
 
+## Phase 4: Binary Device Protocol
+
+第四阶段增加 CRC16-CCITT-FALSE、固定内存二进制帧、字节环形缓冲区、可恢复流式
+Parser、统一命令响应、RAM 运行时配置、二进制 Motion/Health 遥测，以及
+`python -m motionctl` 设备 CLI 和无硬件模拟器。协议模式启用后 USART1 只发送
+二进制帧，避免与普通日志和 CSV 混流。
+
+软件协议、模拟设备、主机测试和 STM32 GCC 交叉编译已完成；这不等于真实串口验证
+完成。真实 USART 收发、帧传输、命令响应和长时间通信仍需在面包板上验证。
+
+详细格式和验证边界见[协议规范](docs/protocol-specification.md)和
+[第四阶段记录](docs/phase-04-device-protocol.md)。
+
 ## 常用命令
 
 ```powershell
@@ -71,4 +84,5 @@ powershell -ExecutionPolicy Bypass -File .\tools\check-phase1.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase2.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\test-python.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase3.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\check-phase4.ps1
 ```

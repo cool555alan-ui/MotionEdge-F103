@@ -3,10 +3,15 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import importlib.util
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-import motionctl  # noqa: E402
+_LEGACY_PATH = Path(__file__).resolve().parents[1] / "motionctl.py"
+_SPEC = importlib.util.spec_from_file_location("motionctl_csv", _LEGACY_PATH)
+assert _SPEC is not None and _SPEC.loader is not None
+motionctl = importlib.util.module_from_spec(_SPEC)
+sys.modules[_SPEC.name] = motionctl
+_SPEC.loader.exec_module(motionctl)
 
 
 class MotionCtlTests(unittest.TestCase):

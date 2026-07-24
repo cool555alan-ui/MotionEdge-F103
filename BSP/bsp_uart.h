@@ -17,5 +17,6 @@ typedef enum
 BspUartStatus_t BspUart_Init(void);
 BspUartStatus_t BspUart_Write(const uint8_t *data, size_t length);
 bool BspUart_IsReady(void);
+BspUartStatus_t BspUart_TryReadByte(uint8_t *byte, bool *received);
 
 #endif /* BSP_UART_H */

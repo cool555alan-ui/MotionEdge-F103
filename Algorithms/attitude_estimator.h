@@ -15,6 +15,7 @@ typedef struct
     float gyro_roll_deg;
     float gyro_pitch_deg;
     uint32_t last_timestamp_ms;
+    float gyro_weight;
     bool initialized;
 } AttitudeEstimator_t;
 
@@ -40,5 +41,8 @@ bool AttitudeEstimator_Update(AttitudeEstimator_t *estimator,
                               const Mpu6050ScaledSample_t *sample,
                               uint32_t timestamp_ms,
                               AttitudeOutput_t *output);
+/** 更新互补滤波陀螺仪权重，范围0.5至0.999。 */
+bool AttitudeEstimator_SetGyroWeight(AttitudeEstimator_t *estimator,
+                                    float gyro_weight);
 
 #endif /* ATTITUDE_ESTIMATOR_H */

@@ -1,0 +1,56 @@
+[
+  {
+    "name": "ping",
+    "type": 1,
+    "flags": 0,
+    "sequence": 4660,
+    "payload_hex": "",
+    "frame_hex": "a55a0101003412000014c7",
+    "valid": true
+  },
+  {
+    "name": "device_info_response",
+    "type": 128,
+    "flags": 0,
+    "sequence": 4660,
+    "payload_hex": "02000000040000040001",
+    "frame_hex": "a55a01800034120a000200000004000004000118ec",
+    "valid": true
+  },
+  {
+    "name": "empty_payload",
+    "type": 3,
+    "flags": 0,
+    "sequence": 1,
+    "payload_hex": "",
+    "frame_hex": "a55a01030001000000fbf1",
+    "valid": true
+  },
+  {
+    "name": "max_payload",
+    "type": 5,
+    "flags": 0,
+    "sequence": 2,
+    "payload_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f",
+    "frame_hex": "a55a01050002008000000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f46f0",
+    "valid": true
+  },
+  {
+    "name": "motion_telemetry",
+    "type": 32,
+    "flags": 0,
+    "sequence": 7,
+    "payload_hex": "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+    "frame_hex": "a55a01200007002d0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000075ca",
+    "valid": true
+  },
+  {
+    "name": "crc_error",
+    "type": 1,
+    "flags": 0,
+    "sequence": 4660,
+    "payload_hex": "",
+    "frame_hex": "a55a0101003412000014c6",
+    "valid": false
+  }
+]

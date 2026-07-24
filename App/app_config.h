@@ -21,6 +21,10 @@
 #define APP_COMPLEMENTARY_GYRO_WEIGHT_MILLI 980U
 /* 一阶低通滤波alpha，千分比。 */
 #define APP_LOW_PASS_ALPHA_MILLI 200U
+/* 运行时配置的默认日志级别，对应LOG_LEVEL_INFO。 */
+#define APP_DEFAULT_LOG_LEVEL 1U
+/* 二进制遥测默认关闭，避免与开发日志和CSV混流。 */
+#define APP_DEFAULT_TELEMETRY_ENABLED 0U
 /* 校准失败前允许累计拒绝的样本数。 */
 #define APP_CALIBRATION_MAX_REJECTED_SAMPLES 2000U
 /* 判定传感器输出长期固定所需的连续次数。 */
