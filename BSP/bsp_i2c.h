@@ -16,6 +16,7 @@ typedef enum
 } BspI2cStatus_t;
 
 BspI2cStatus_t BspI2c_Init(void);
+BspI2cStatus_t BspI2c_RecoverBus(void);
 BspI2cStatus_t BspI2c_IsDeviceReady(uint8_t address_7bit);
 BspI2cStatus_t BspI2c_ReadRegister(uint8_t address_7bit,
                                   uint8_t register_address,

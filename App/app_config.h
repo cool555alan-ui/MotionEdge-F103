@@ -5,7 +5,7 @@
 #define APP_HEARTBEAT_PERIOD_MS 500U
 /* 健康与校准进度报告周期，单位ms。 */
 #define APP_HEALTH_REPORT_PERIOD_MS 1000U
-/* MPU6050采样周期，10 ms对应100 Hz。 */
+/* MPU6500采样周期，10 ms对应100 Hz。 */
 #define APP_SENSOR_SAMPLE_PERIOD_MS 10U
 /* 静止校准需要接受的样本数。 */
 #define APP_CALIBRATION_SAMPLE_COUNT 500U
@@ -35,6 +35,8 @@
 #define APP_I2C_PROBE_TIMEOUT_MS 2U
 /* I2C寄存器读写超时，单位ms。 */
 #define APP_I2C_TRANSFER_TIMEOUT_MS 10U
+/* 首次全地址扫描失败后的总线恢复与重试次数。 */
+#define APP_I2C_SCAN_MAX_RETRIES 2U
 
 /* CSV行缓冲区容量，包含字符串结束符。 */
 #define APP_CSV_BUFFER_SIZE 192U

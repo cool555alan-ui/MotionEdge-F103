@@ -43,7 +43,7 @@ static bool MotionRead(uint8_t address,
     }
     if ((reg == 0x75U) && (length == 1U))
     {
-        data[0] = MPU6050_WHO_AM_I_VALUE;
+        data[0] = MPU6500_WHO_AM_I_VALUE;
         return true;
     }
     if ((reg == 0x3BU) && (length == sizeof(s_motion_frame)))
@@ -66,7 +66,7 @@ static bool MotionWrite(uint8_t address,
 
 void TestMotionService_Run(TestContext_t *context)
 {
-    Mpu6050_t device = {0};
+    Mpu6500_t device = {0};
     MotionFrame_t frame;
     MotionServiceStats_t stats;
     CalibrationResult_t calibration;
@@ -75,11 +75,11 @@ void TestMotionService_Run(TestContext_t *context)
     uint32_t successful_before;
 
     TEST_EXPECT(context,
-                Mpu6050_Init(&device,
-                             MPU6050_ADDRESS_AD0_LOW,
+                Mpu6500_Init(&device,
+                             MPU6500_ADDRESS_AD0_LOW,
                              MotionRead,
-                             MotionWrite) == MPU6050_OK);
-    TEST_EXPECT(context, Mpu6050_Wake(&device) == MPU6050_OK);
+                             MotionWrite) == MPU6500_OK);
+    TEST_EXPECT(context, Mpu6500_Wake(&device) == MPU6500_OK);
     TEST_EXPECT(context, SensorService_Init(&device, now_ms));
     TEST_EXPECT(context, MotionService_Init(now_ms));
     TEST_EXPECT(context, MotionService_StartCalibration());

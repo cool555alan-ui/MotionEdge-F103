@@ -7,10 +7,10 @@ void TestAttitudeEstimator_Run(TestContext_t *context)
 {
     AttitudeEstimator_t estimator;
     AttitudeOutput_t output = {0};
-    Mpu6050ScaledSample_t horizontal = {0, 0, 1000, 0, 0, 0};
-    Mpu6050ScaledSample_t roll_45 = {0, 707, 707, 0, 0, 0};
-    Mpu6050ScaledSample_t pitch_45 = {-707, 0, 707, 0, 0, 0};
-    Mpu6050ScaledSample_t rotating = {0, 0, 1000, 100000, 0, 0};
+    Mpu6500ScaledSample_t horizontal = {0, 0, 1000, 0, 0, 0};
+    Mpu6500ScaledSample_t roll_45 = {0, 707, 707, 0, 0, 0};
+    Mpu6500ScaledSample_t pitch_45 = {-707, 0, 707, 0, 0, 0};
+    Mpu6500ScaledSample_t rotating = {0, 0, 1000, 100000, 0, 0};
 
     TEST_EXPECT(context, !AttitudeEstimator_Init(NULL));
     TEST_EXPECT(context, AttitudeEstimator_Init(&estimator));

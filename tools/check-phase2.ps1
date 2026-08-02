@@ -29,13 +29,13 @@ try {
     $requiredFiles = @(
         'BSP\bsp_i2c.c',
         'BSP\bsp_i2c.h',
-        'Devices\mpu6050.c',
-        'Devices\mpu6050.h',
+        'Devices\mpu6500.c',
+        'Devices\mpu6500.h',
         'Services\i2c_scanner.c',
         'Services\i2c_scanner.h',
         'Tests\Host\test_i2c_scanner.c',
-        'Tests\Host\test_mpu6050.c',
-        'docs\phase-02-i2c-mpu6050.md'
+        'Tests\Host\test_mpu6500.c',
+        'docs\phase-02-i2c-mpu6500.md'
     )
     $missingFiles = @($requiredFiles | Where-Object {
             -not (Test-Path -LiteralPath (Join-Path $ProjectRoot $_) -PathType Leaf)
@@ -65,7 +65,7 @@ try {
 
     $cmakeText = Get-Content -LiteralPath (Join-Path $ProjectRoot 'cmake\user_sources.cmake') `
         -Raw -Encoding UTF8
-    $requiredSources = @('bsp_i2c.c', 'mpu6050.c', 'i2c_scanner.c')
+    $requiredSources = @('bsp_i2c.c', 'mpu6500.c', 'i2c_scanner.c')
     $missingSources = @($requiredSources |
             Where-Object { $cmakeText -notmatch [regex]::Escape($_) })
     Add-Check 'Phase 2 CMake sources' ($missingSources.Count -eq 0) `
@@ -82,10 +82,10 @@ try {
     }
     Add-Check 'I2C scan integration' ($appText -match '\bI2cScanner_Step\s*\(') `
         'single-step scan in main loop'
-    Add-Check 'WHO_AM_I integration' ($appText -match '\bMpu6050_ReadWhoAmI\s*\(') `
+    Add-Check 'WHO_AM_I integration' ($appText -match '\bMpu6500_ReadWhoAmI\s*\(') `
         'application reads sensor identity'
     Add-Check 'Raw sample integration' `
-        (($appText + $sensorText) -match '\bMpu6050_ReadRaw\s*\(') `
+        (($appText + $sensorText) -match '\bMpu6500_ReadRaw\s*\(') `
         'application sensor pipeline reads raw samples periodically'
 
     $savedErrorActionPreference = $ErrorActionPreference

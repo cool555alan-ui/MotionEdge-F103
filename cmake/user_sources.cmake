@@ -7,7 +7,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/BSP/bsp_i2c.c
     ${CMAKE_SOURCE_DIR}/BSP/bsp_uart.c
     ${CMAKE_SOURCE_DIR}/Common/software_timer.c
-    ${CMAKE_SOURCE_DIR}/Devices/mpu6050.c
+    ${CMAKE_SOURCE_DIR}/Devices/mpu6500.c
     ${CMAKE_SOURCE_DIR}/Middleware/logger.c
     ${CMAKE_SOURCE_DIR}/Middleware/csv_telemetry.c
     ${CMAKE_SOURCE_DIR}/Middleware/crc16.c

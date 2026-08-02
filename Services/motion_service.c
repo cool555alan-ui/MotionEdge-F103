@@ -19,7 +19,7 @@ static AttitudeEstimator_t s_estimator;
 static MotionFrame_t s_latest_frame;
 static MotionServiceStats_t s_stats;
 static MotionServiceState_t s_state;
-static Mpu6050ScaledSample_t s_previous_sample;
+static Mpu6500ScaledSample_t s_previous_sample;
 static uint32_t s_last_sequence;
 static uint32_t s_last_timestamp_ms;
 static uint32_t s_invalid_count;
@@ -35,8 +35,8 @@ static int64_t MotionService_Abs(int32_t value)
     return (value < 0) ? -(int64_t)value : (int64_t)value;
 }
 
-static bool MotionService_SamplesEqual(const Mpu6050ScaledSample_t *left,
-                                       const Mpu6050ScaledSample_t *right)
+static bool MotionService_SamplesEqual(const Mpu6500ScaledSample_t *left,
+                                       const Mpu6500ScaledSample_t *right)
 {
     return (left->accel_mg_x == right->accel_mg_x) &&
            (left->accel_mg_y == right->accel_mg_y) &&
@@ -49,7 +49,7 @@ static bool MotionService_SamplesEqual(const Mpu6050ScaledSample_t *left,
 static uint32_t MotionService_ValidateSample(const SensorSample_t *sample)
 {
     uint32_t flags = MOTION_SAMPLE_FLAG_NONE;
-    const Mpu6050ScaledSample_t *scaled = &sample->scaled;
+    const Mpu6500ScaledSample_t *scaled = &sample->scaled;
     int64_t magnitude_squared;
 
     if (!sample->read_success)
@@ -117,9 +117,9 @@ static uint32_t MotionService_ValidateSample(const SensorSample_t *sample)
     return flags;
 }
 
-static void MotionService_ApplyCalibration(const Mpu6050ScaledSample_t *input,
+static void MotionService_ApplyCalibration(const Mpu6500ScaledSample_t *input,
                                            const CalibrationResult_t *calibration,
-                                           Mpu6050ScaledSample_t *output)
+                                           Mpu6500ScaledSample_t *output)
 {
     *output = *input;
     if (!calibration->valid)
@@ -135,8 +135,8 @@ static void MotionService_ApplyCalibration(const Mpu6050ScaledSample_t *input,
     output->gyro_mdps_z -= calibration->gyro_bias_mdps_z;
 }
 
-static bool MotionService_FilterSample(const Mpu6050ScaledSample_t *input,
-                                       Mpu6050ScaledSample_t *output,
+static bool MotionService_FilterSample(const Mpu6500ScaledSample_t *input,
+                                       Mpu6500ScaledSample_t *output,
                                        bool reset)
 {
     const int32_t values[6] = {input->accel_mg_x,
@@ -201,7 +201,7 @@ bool MotionService_Init(uint32_t now_ms)
 
     s_latest_frame = (MotionFrame_t){0};
     s_stats = (MotionServiceStats_t){0};
-    s_previous_sample = (Mpu6050ScaledSample_t){0};
+    s_previous_sample = (Mpu6500ScaledSample_t){0};
     s_last_sequence = 0U;
     s_last_timestamp_ms = 0U;
     s_invalid_count = 0U;

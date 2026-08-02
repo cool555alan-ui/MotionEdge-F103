@@ -6,7 +6,7 @@
 
 #include "attitude_estimator.h"
 #include "calibration_service.h"
-#include "mpu6050.h"
+#include "mpu6500.h"
 
 typedef enum
 {
@@ -33,9 +33,9 @@ typedef struct
     uint32_t timestamp_ms;
     uint32_t sequence;
     uint32_t status_flags;
-    Mpu6050ScaledSample_t raw_scaled;
-    Mpu6050ScaledSample_t calibrated_sample;
-    Mpu6050ScaledSample_t filtered;
+    Mpu6500ScaledSample_t raw_scaled;
+    Mpu6500ScaledSample_t calibrated_sample;
+    Mpu6500ScaledSample_t filtered;
     AttitudeOutput_t attitude;
     bool valid;
     bool calibrated;

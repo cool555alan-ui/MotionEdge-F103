@@ -46,7 +46,7 @@ try {
     $version = Get-Content -LiteralPath (Join-Path $ProjectRoot 'App\app_version.h') `
         -Raw -Encoding UTF8
     Add-Check 'Version at least 0.3.0' `
-        ($version -match 'APP_VERSION_STRING\s+"0\.[34]\.0"') 'firmware version'
+        ($version -match 'APP_VERSION_STRING\s+"0\.[34]\.[0-9]+"') 'firmware version'
 
     $userFiles = Get-UserFiles
     $dynamic = @($userFiles |
@@ -94,10 +94,11 @@ try {
 
     $readme = Get-Content -LiteralPath (Join-Path $ProjectRoot 'README.md') `
         -Raw -Encoding UTF8
-    Add-Check 'Hardware boundary documented' `
+    Add-Check 'Hardware validation documented' `
         (($readme -match 'Phase 3: Calibration and Attitude Pipeline') -and
-         ($readme -match 'ST-LINK')) `
-        'README does not claim hardware validation'
+         ($readme -match 'artifacts/hardware-validation/') -and
+         ($readme -match 'Roll/Pitch')) `
+        'verified behavior and remaining accuracy boundary are explicit'
 
     $savedPreference = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'

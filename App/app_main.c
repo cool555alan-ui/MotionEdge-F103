@@ -15,7 +15,7 @@
 #include "i2c_scanner.h"
 #include "logger.h"
 #include "motion_service.h"
-#include "mpu6050.h"
+#include "mpu6500.h"
 #include "sensor_service.h"
 #include "software_timer.h"
 
@@ -24,11 +24,14 @@ static SoftwareTimer_t s_health_report_timer;
 static SoftwareTimer_t s_attitude_report_timer;
 static SoftwareTimer_t s_calibration_report_timer;
 static I2cScanner_t s_i2c_scanner;
-static Mpu6050_t s_mpu6050;
+static Mpu6500_t s_mpu6500;
 static bool s_app_initialized = false;
 static bool s_sensor_ready = false;
-static uint8_t s_mpu6050_address = 0U;
+static uint8_t s_mpu6500_address = 0U;
+static uint8_t s_i2c_scan_retry_count = 0U;
 static bool s_csv_header_written = false;
+static uint32_t s_last_csv_sequence = 0U;
+static bool s_has_csv_sequence = false;
 static CalibrationState_t s_last_calibration_state = CALIBRATION_STATE_IDLE;
 static char s_csv_buffer[APP_CSV_BUFFER_SIZE];
 
@@ -50,7 +53,7 @@ static bool App_I2cProbe(uint8_t address_7bit)
     return BspI2c_IsDeviceReady(address_7bit) == BSP_I2C_OK;
 }
 
-static bool App_Mpu6050Read(uint8_t address_7bit,
+static bool App_Mpu6500Read(uint8_t address_7bit,
                            uint8_t register_address,
                            uint8_t *data,
                            size_t length)
@@ -59,7 +62,7 @@ static bool App_Mpu6050Read(uint8_t address_7bit,
            BSP_I2C_OK;
 }
 
-static bool App_Mpu6050Write(uint8_t address_7bit,
+static bool App_Mpu6500Write(uint8_t address_7bit,
                             uint8_t register_address,
                             const uint8_t *data,
                             size_t length)
@@ -90,44 +93,57 @@ static void App_CompleteI2cScan(uint32_t now_ms)
                                               "I2C",
                                               "scan complete devices=%u",
                                               (unsigned int)s_i2c_scanner.found_count));
-    if (s_mpu6050_address == 0U)
+    if (s_mpu6500_address == 0U)
     {
+        if ((s_i2c_scan_retry_count < APP_I2C_SCAN_MAX_RETRIES) &&
+            (BspI2c_RecoverBus() == BSP_I2C_OK) &&
+            I2cScanner_Init(&s_i2c_scanner, App_I2cProbe))
+        {
+            ++s_i2c_scan_retry_count;
+            App_RecordLogResult(
+                Logger_WriteFormatted(LOG_LEVEL_WARN,
+                                      "I2C",
+                                      "device not found; recovery retry=%u/%u",
+                                      (unsigned int)s_i2c_scan_retry_count,
+                                      (unsigned int)APP_I2C_SCAN_MAX_RETRIES));
+            return;
+        }
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         App_RecordLogResult(
-            Logger_Write(LOG_LEVEL_WARN, "MPU6050", "device not found"));
+            Logger_Write(LOG_LEVEL_WARN, "MPU6500", "device not found"));
         return;
     }
-    if (Mpu6050_Init(&s_mpu6050,
-                     s_mpu6050_address,
-                     App_Mpu6050Read,
-                     App_Mpu6050Write) != MPU6050_OK)
+    if (Mpu6500_Init(&s_mpu6500,
+                     s_mpu6500_address,
+                     App_Mpu6500Read,
+                     App_Mpu6500Write) != MPU6500_OK)
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         return;
     }
-    if ((Mpu6050_ReadWhoAmI(&s_mpu6050, &identity) != MPU6050_OK) ||
-        ((identity & 0x7EU) != MPU6050_WHO_AM_I_VALUE))
+    if ((Mpu6500_ReadWhoAmI(&s_mpu6500, &identity) != MPU6500_OK) ||
+        (identity != MPU6500_WHO_AM_I_VALUE))
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         App_RecordLogResult(Logger_WriteFormatted(LOG_LEVEL_ERROR,
-                                                  "MPU6050",
+                                                  "MPU6500",
                                                   "WHO_AM_I invalid value=0x%02X",
                                                   (unsigned int)identity));
         return;
     }
     App_RecordLogResult(Logger_WriteFormatted(LOG_LEVEL_INFO,
-                                              "MPU6050",
+                                              "MPU6500",
                                               "WHO_AM_I=0x%02X address=0x%02X",
                                               (unsigned int)identity,
-                                              (unsigned int)s_mpu6050_address));
-    if (Mpu6050_Wake(&s_mpu6050) != MPU6050_OK)
+                                              (unsigned int)s_mpu6500_address));
+    if (Mpu6500_Wake(&s_mpu6500) != MPU6500_OK)
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         App_RecordLogResult(
-            Logger_Write(LOG_LEVEL_ERROR, "MPU6050", "wake failed"));
+            Logger_Write(LOG_LEVEL_ERROR, "MPU6500", "wake failed"));
         return;
     }
-    if (!SensorService_Init(&s_mpu6050, now_ms))
+    if (!SensorService_Init(&s_mpu6500, now_ms))
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         App_RecordLogResult(
@@ -136,7 +152,7 @@ static void App_CompleteI2cScan(uint32_t now_ms)
     }
 
     s_sensor_ready = true;
-    App_RecordLogResult(Logger_Write(LOG_LEVEL_INFO, "MPU6050", "sensor ready"));
+    App_RecordLogResult(Logger_Write(LOG_LEVEL_INFO, "MPU6500", "sensor ready"));
 }
 
 static void App_RunI2cScanStep(uint32_t now_ms)
@@ -153,10 +169,10 @@ static void App_RunI2cScanStep(uint32_t now_ms)
                                                   "I2C",
                                                   "device found address=0x%02X",
                                                   (unsigned int)result.address));
-        if ((result.address == MPU6050_ADDRESS_AD0_LOW) ||
-            (result.address == MPU6050_ADDRESS_AD0_HIGH))
+        if ((result.address == MPU6500_ADDRESS_AD0_LOW) ||
+            (result.address == MPU6500_ADDRESS_AD0_HIGH))
         {
-            s_mpu6050_address = result.address;
+            s_mpu6500_address = result.address;
         }
     }
     if (result.complete)
@@ -215,6 +231,10 @@ static void App_WriteTelemetry(void)
     {
         return;
     }
+    if (s_has_csv_sequence && (frame.sequence == s_last_csv_sequence))
+    {
+        return;
+    }
     if (!s_csv_header_written)
     {
         if (!CsvTelemetry_WriteHeader(s_csv_buffer, sizeof(s_csv_buffer), &written) ||
@@ -230,7 +250,10 @@ static void App_WriteTelemetry(void)
         (BspUart_Write((const uint8_t *)s_csv_buffer, written) != BSP_UART_OK))
     {
         HealthService_RecordLogFailure();
+        return;
     }
+    s_last_csv_sequence = frame.sequence;
+    s_has_csv_sequence = true;
 }
 
 static void App_RunMotionPipeline(uint32_t now_ms)
@@ -314,8 +337,11 @@ bool App_Init(uint32_t now_ms)
 
     s_app_initialized = true;
     s_sensor_ready = false;
-    s_mpu6050_address = 0U;
+    s_mpu6500_address = 0U;
+    s_i2c_scan_retry_count = 0U;
     s_csv_header_written = false;
+    s_last_csv_sequence = 0U;
+    s_has_csv_sequence = false;
     s_last_calibration_state = CALIBRATION_STATE_IDLE;
     App_LogStartupInformation();
     return true;

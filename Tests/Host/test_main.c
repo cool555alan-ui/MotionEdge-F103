@@ -6,7 +6,7 @@ void TestSoftwareTimer_Run(TestContext_t *context);
 void TestAppStatus_Run(TestContext_t *context);
 void TestLogger_Run(TestContext_t *context);
 void TestI2cScanner_Run(TestContext_t *context);
-void TestMpu6050_Run(TestContext_t *context);
+void TestMpu6500_Run(TestContext_t *context);
 void TestLowPassFilter_Run(TestContext_t *context);
 void TestAttitudeEstimator_Run(TestContext_t *context);
 void TestCalibrationService_Run(TestContext_t *context);
@@ -41,7 +41,7 @@ int main(void)
     TestAppStatus_Run(&context);
     TestLogger_Run(&context);
     TestI2cScanner_Run(&context);
-    TestMpu6050_Run(&context);
+    TestMpu6500_Run(&context);
     TestLowPassFilter_Run(&context);
     TestAttitudeEstimator_Run(&context);
     TestCalibrationService_Run(&context);

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "mpu6050.h"
+#include "mpu6500.h"
 
 typedef enum
 {
@@ -34,7 +34,7 @@ bool CalibrationService_Init(void);
 bool CalibrationService_Start(void);
 
 /** 处理一个缩放样本；函数不会等待后续样本。 */
-void CalibrationService_ProcessSample(const Mpu6050ScaledSample_t *sample);
+void CalibrationService_ProcessSample(const Mpu6500ScaledSample_t *sample);
 
 /** 返回当前校准状态。 */
 CalibrationState_t CalibrationService_GetState(void);

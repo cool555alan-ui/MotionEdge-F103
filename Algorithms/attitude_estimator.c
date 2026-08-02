@@ -8,7 +8,7 @@
 #define ATTITUDE_RAD_TO_DEG 57.29577951308232F
 #define ATTITUDE_MAX_DT_MS 200U
 
-static bool AttitudeEstimator_CalculateAccelAngles(const Mpu6050ScaledSample_t *sample,
+static bool AttitudeEstimator_CalculateAccelAngles(const Mpu6500ScaledSample_t *sample,
                                                    float *roll_deg,
                                                    float *pitch_deg)
 {
@@ -75,7 +75,7 @@ bool AttitudeEstimator_Init(AttitudeEstimator_t *estimator)
 }
 
 bool AttitudeEstimator_Reset(AttitudeEstimator_t *estimator,
-                             const Mpu6050ScaledSample_t *sample,
+                             const Mpu6500ScaledSample_t *sample,
                              uint32_t timestamp_ms)
 {
     float roll_deg;
@@ -99,7 +99,7 @@ bool AttitudeEstimator_Reset(AttitudeEstimator_t *estimator,
 }
 
 bool AttitudeEstimator_Update(AttitudeEstimator_t *estimator,
-                              const Mpu6050ScaledSample_t *sample,
+                              const Mpu6500ScaledSample_t *sample,
                               uint32_t timestamp_ms,
                               AttitudeOutput_t *output)
 {

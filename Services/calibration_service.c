@@ -19,7 +19,7 @@ static int64_t CalibrationService_Abs(int32_t value)
     return (value < 0) ? -(int64_t)value : (int64_t)value;
 }
 
-static bool CalibrationService_IsStationary(const Mpu6050ScaledSample_t *sample)
+static bool CalibrationService_IsStationary(const Mpu6500ScaledSample_t *sample)
 {
     int64_t magnitude_squared;
     int32_t lower_bound = 1000 - APP_CALIBRATION_ACCEL_TOLERANCE_MG;
@@ -102,7 +102,7 @@ bool CalibrationService_Start(void)
     return true;
 }
 
-void CalibrationService_ProcessSample(const Mpu6050ScaledSample_t *sample)
+void CalibrationService_ProcessSample(const Mpu6500ScaledSample_t *sample)
 {
     if (!s_initialized || (s_state != CALIBRATION_STATE_COLLECTING))
     {

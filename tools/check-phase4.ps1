@@ -42,7 +42,7 @@ try {
 
     $version = Get-Content -Raw -Encoding UTF8 `
         (Join-Path $ProjectRoot 'App\app_version.h')
-    Add-Check 'Version 0.4.0' ($version -match 'APP_VERSION_STRING\s+"0\.4\.0"') `
+    Add-Check 'Version 0.4.1' ($version -match 'APP_VERSION_STRING\s+"0\.4\.1"') `
         'firmware version'
 
     $constants = Get-Content -Raw -Encoding UTF8 `
@@ -114,9 +114,10 @@ try {
         (Join-Path $ProjectRoot 'docs\phase-04-device-protocol.md')
     Add-Check 'Hardware boundary documented' `
         (($readme -match 'Phase 4: Binary Device Protocol') -and
-         ($phaseDoc -match 'No target hardware is connected') -and
+         ($phaseDoc -match 'Phase 1.*hardware validation is complete') -and
+         ($phaseDoc -match 'Binary protocol hardware') -and
          ($phaseDoc -match 'Breadboard validation')) `
-        'real serial remains pending'
+        'Phase 1-3 hardware passed; binary protocol remains pending'
 
     $trackedBuild = @(& git -C $ProjectRoot ls-files |
             Where-Object { $_ -match '^(?:build|build-host)/' })

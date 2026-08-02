@@ -25,10 +25,10 @@ commands. The STM32 firmware is also cross-compiled with GCC.
 
 ## Validation boundary
 
-No target hardware is connected. Protocol logic, the simulated device, host
-tests, and cross-compilation are verified. These results do not verify real
-USART electrical behavior, baud accuracy, split-frame timing, command response
-latency, sustained streaming, or coexistence with an MPU6050 on a breadboard.
+Phase 1–3 hardware validation is complete for SWD flashing, USART1 text/CSV,
+MPU6500 discovery, calibration, and attitude motion. Binary protocol hardware
+validation remains pending: the current evidence does not cover real command
+responses, split-frame timing, CRC fault injection, or sustained binary streaming.
 
 Breadboard validation must cover:
 

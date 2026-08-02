@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "mpu6050.h"
+#include "mpu6500.h"
 
 typedef struct
 {
@@ -33,12 +33,12 @@ bool AttitudeEstimator_Init(AttitudeEstimator_t *estimator);
 
 /** 使用当前加速度方向重置Roll/Pitch和时间基准。 */
 bool AttitudeEstimator_Reset(AttitudeEstimator_t *estimator,
-                             const Mpu6050ScaledSample_t *sample,
+                             const Mpu6500ScaledSample_t *sample,
                              uint32_t timestamp_ms);
 
 /** 使用真实毫秒时间差更新Roll/Pitch，输出单位为0.01度。 */
 bool AttitudeEstimator_Update(AttitudeEstimator_t *estimator,
-                              const Mpu6050ScaledSample_t *sample,
+                              const Mpu6500ScaledSample_t *sample,
                               uint32_t timestamp_ms,
                               AttitudeOutput_t *output);
 /** 更新互补滤波陀螺仪权重，范围0.5至0.999。 */

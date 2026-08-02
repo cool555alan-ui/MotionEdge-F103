@@ -12,7 +12,7 @@ add_executable(firmware_host_tests
     test_app_status.c
     test_logger.c
     test_i2c_scanner.c
-    test_mpu6050.c
+    test_mpu6500.c
     test_low_pass_filter.c
     test_attitude_estimator.c
     test_calibration_service.c
@@ -23,7 +23,7 @@ add_executable(firmware_host_tests
     ../../Algorithms/attitude_estimator.c
     ../../Common/software_timer.c
     ../../App/app_status.c
-    ../../Devices/mpu6050.c
+    ../../Devices/mpu6500.c
     ../../Middleware/logger.c
     ../../Middleware/csv_telemetry.c
     ../../Middleware/crc16.c

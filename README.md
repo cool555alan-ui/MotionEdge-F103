@@ -1,9 +1,9 @@
 # MotionEdge-F103
 
-MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050 的嵌入式运动控制基础项目。
+MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6500 的嵌入式运动控制基础项目。
 
 - MCU：STM32F103C8T6
-- 传感器：MPU6050
+- 传感器：MPU6500
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
@@ -21,28 +21,28 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050 的嵌入式运动控制基�
 - Windows 主机侧纯 C 单元测试
 - STM32 CMake Debug 交叉编译
 
-当前没有连接硬件，尚未进行烧录验证。LED 电平行为、USART1 实际输出和 ST-LINK
-连接仍需在目标板上验证。
+2026-08-02 已在 STM32F103C8T6 实板完成 ST-LINK 连接、下载校验、复位启动和
+USART1 日志验证。健康日志中的心跳计数正常递增；PC13 LED 的实际亮灭极性仍需目视确认。
 
 详细设计和验证边界见
 [第一阶段固件基础框架](docs/phase-01-firmware-foundation.md)。
 
-## Phase 2: I²C and MPU6050
+## Phase 2: I²C and MPU6500
 
 第二阶段增加了：
 
 - I²C1 BSP 寄存器读写和有限超时设备探测
 - 每次主循环仅探测一个地址的非阻塞 I²C 扫描状态机
-- 与 STM32 HAL 解耦的 MPU6050 驱动
+- 与 STM32 HAL 解耦的 MPU6500 驱动
 - `WHO_AM_I` 身份读取与校验
 - 电源管理寄存器唤醒
 - 加速度计和陀螺仪六轴原始数据读取
 - 使用模拟 I²C 总线的 Windows 主机测试
 
-当前未连接目标硬件。上述逻辑已经通过主机测试和 STM32 交叉编译，但总线电气连接、
-地址响应、`WHO_AM_I` 实际值和六轴采样仍需连接 MPU6050 后验证。
+2026-08-02 实板验证发现 I²C 地址 `0x68`、`WHO_AM_I=0x70`，传感器能够唤醒并持续
+输出六轴数据。验证证据见 `artifacts/hardware-validation/`。
 
-详细说明见 [第二阶段 I²C 与 MPU6050](docs/phase-02-i2c-mpu6050.md)。
+详细说明见 [第二阶段 I²C 与 MPU6500](docs/phase-02-i2c-mpu6500.md)。
 
 ## Phase 3: Calibration and Attitude Pipeline
 
@@ -57,8 +57,8 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050 的嵌入式运动控制基�
 - C主机算法测试和Python工具测试
 - STM32 CMake Debug交叉编译
 
-主机模拟和算法测试已经完成，STM32交叉编译已经完成。当前没有连接硬件，真实零偏、
-姿态精度、传感器噪声、温漂、漂移、USART1输出和ST-LINK烧录仍待实机验证。
+实板已完成500样本静止校准、CSV姿态输出以及左右/前后倾斜响应验证。静止加速度模长
+均值约为1 g，Roll/Pitch随动作明显变化；绝对角度精度、温漂和长期漂移仍待治具及长时间测试。
 
 详细说明见[第三阶段校准与姿态数据链](docs/phase-03-calibration-attitude.md)。
 

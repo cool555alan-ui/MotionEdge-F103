@@ -15,6 +15,7 @@ cmake-build-*/
 *.bak
 *.tmp
 *.log
+/artifacts/hardware-validation/hardware-capture.csv
 Debug/
 Release/
 .settings/

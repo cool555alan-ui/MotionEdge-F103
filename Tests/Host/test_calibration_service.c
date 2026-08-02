@@ -7,9 +7,9 @@
 void TestCalibrationService_Run(TestContext_t *context)
 {
     CalibrationResult_t result;
-    Mpu6050ScaledSample_t stationary = {20, -10, 1030, 100, -50, 75};
-    Mpu6050ScaledSample_t moving = {500, 500, 500, 6000, 0, 0};
-    Mpu6050ScaledSample_t inverted = {10, 5, -1020, 20, 30, 40};
+    Mpu6500ScaledSample_t stationary = {20, -10, 1030, 100, -50, 75};
+    Mpu6500ScaledSample_t moving = {500, 500, 500, 6000, 0, 0};
+    Mpu6500ScaledSample_t inverted = {10, 5, -1020, 20, 30, 40};
     uint32_t index;
 
     TEST_EXPECT(context, CalibrationService_Init());

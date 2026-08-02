@@ -26,7 +26,7 @@ void TestCsvTelemetry_Run(TestContext_t *context)
     frame.sequence = 7U;
     frame.status_flags = 5U;
     frame.calibrated = true;
-    frame.filtered = (Mpu6050ScaledSample_t){-10, 20, 1000, -1, 2, -3};
+    frame.filtered = (Mpu6500ScaledSample_t){-10, 20, 1000, -1, 2, -3};
     frame.attitude.roll_cdeg = 125;
     frame.attitude.pitch_cdeg = -340;
     frame.attitude.valid = true;

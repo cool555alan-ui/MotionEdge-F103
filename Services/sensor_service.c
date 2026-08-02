@@ -4,14 +4,14 @@
 
 #include "app_config.h"
 
-static Mpu6050_t *s_device;
+static Mpu6500_t *s_device;
 static SoftwareTimer_t s_sample_timer;
 static SensorSample_t s_latest_sample;
 static bool s_initialized;
 static bool s_has_sample;
 static uint16_t s_period_ms = APP_SENSOR_SAMPLE_PERIOD_MS;
 
-bool SensorService_Init(Mpu6050_t *device, uint32_t now_ms)
+bool SensorService_Init(Mpu6500_t *device, uint32_t now_ms)
 {
     if ((device == NULL) || !device->initialized || !device->awake ||
         !SoftwareTimer_Init(&s_sample_timer, now_ms, s_period_ms))
@@ -42,7 +42,7 @@ bool SensorService_SetSamplePeriod(uint16_t period_ms)
 
 void SensorService_RunOnce(uint32_t now_ms)
 {
-    Mpu6050RawData_t raw_data;
+    Mpu6500RawData_t raw_data;
 
     if (!s_initialized || !SoftwareTimer_IsDue(&s_sample_timer, now_ms))
     {
@@ -52,11 +52,11 @@ void SensorService_RunOnce(uint32_t now_ms)
     ++s_latest_sample.sequence;
     s_latest_sample.timestamp_ms = now_ms;
     s_latest_sample.read_success =
-        (Mpu6050_ReadRaw(s_device, &raw_data) == MPU6050_OK) &&
-        Mpu6050_ScaleRaw(&raw_data, &s_latest_sample.scaled);
+        (Mpu6500_ReadRaw(s_device, &raw_data) == MPU6500_OK) &&
+        Mpu6500_ScaleRaw(&raw_data, &s_latest_sample.scaled);
     if (!s_latest_sample.read_success)
     {
-        s_latest_sample.scaled = (Mpu6050ScaledSample_t){0};
+        s_latest_sample.scaled = (Mpu6500ScaledSample_t){0};
     }
     s_has_sample = true;
 }

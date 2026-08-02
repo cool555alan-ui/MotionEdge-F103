@@ -1,5 +1,5 @@
 #include "i2c_scanner.h"
-#include "mpu6050.h"
+#include "mpu6500.h"
 #include "test_support.h"
 
 static uint32_t s_probe_count = 0U;
@@ -9,7 +9,7 @@ static bool TestProbe(uint8_t address_7bit)
 {
     ++s_probe_count;
     s_last_probe_address = address_7bit;
-    return (address_7bit == 0x3CU) || (address_7bit == MPU6050_ADDRESS_AD0_LOW);
+    return (address_7bit == 0x3CU) || (address_7bit == MPU6500_ADDRESS_AD0_LOW);
 }
 
 void TestI2cScanner_Run(TestContext_t *context)
