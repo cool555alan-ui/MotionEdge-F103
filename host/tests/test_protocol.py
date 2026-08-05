@@ -61,7 +61,7 @@ class ProtocolTests(unittest.TestCase):
     def test_sequence_matching_and_main_commands(self):
         client = DeviceClient(SimulatedDevice(), timeout=0.05)
         self.assertEqual(client.request(commands.PING), b"")
-        self.assertEqual(client.request(commands.GET_DEVICE_INFO), bytes((0, 4, 0, 1)))
+        self.assertEqual(client.request(commands.GET_DEVICE_INFO), bytes((0, 6, 0, 1)))
         config = commands.RuntimeConfig.unpack(client.request(commands.GET_CONFIG))
         changed = commands.RuntimeConfig(
             config.sensor_ms, 250, config.alpha_milli, config.gyro_weight_milli, config.log_level, True

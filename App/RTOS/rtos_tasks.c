@@ -345,12 +345,13 @@ static void HealthTask(void *argument)
                         LOG_LEVEL_INFO,
                         "RTOS-COMM",
                         "rx=%" PRIu32 " crc=%" PRIu32 " parser=%" PRIu32
-                        " command=%" PRIu32 " tx=%" PRIu32,
+                        " command=%" PRIu32 " tx=%" PRIu32 " uart=%" PRIu32,
                         communication_stats.rx_overflow_count,
                         communication_stats.crc_error_count,
                         communication_stats.parser_error_count,
                         communication_stats.command_error_count,
-                        communication_stats.tx_error_count);
+                        communication_stats.tx_error_count,
+                        communication_stats.uart_error_count);
                 }
             }
         }

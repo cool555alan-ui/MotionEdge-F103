@@ -1,0 +1,6 @@
+command,success,rtt_ms,sequence,error
+0x1,True,109.975,1,
+0x2,True,92.3698,2,
+0x4,True,92.0811,3,
+0x3,True,108.0178,4,
+0x4,True,70.2109,5,

@@ -1,14 +1,20 @@
 # MotionEdge host tools
 
-`motionctl.py`使用与固件一致的12列整数CSV格式。除串口采集命令外只依赖Python标准库；
-`record`命令需要安装`requirements.txt`中的`pyserial`。
+安装设备工具和离线图表依赖：
 
 ```powershell
-python host\motionctl.py simulate --seconds 5 --output data\simulated.csv
-python host\motionctl.py validate data\simulated.csv
-python host\motionctl.py summary data\simulated.csv
-python host\motionctl.py replay data\simulated.csv --speed 10
-python host\motionctl.py record --port COM5 --baud 115200 --output data\capture.csv
+python -m pip install -e .\host
+python -m motionctl --help
 ```
 
-`simulate`输出仅为测试姿态变化和工具链的模拟数据，不代表真实传感器测量。
+`motionctl`使用固件二进制协议v1。常用流程：
+
+```powershell
+python -m motionctl ports
+python -m motionctl doctor --port COM4
+python -m motionctl ping --port COM4 --count 100
+python -m motionctl session --port COM4 --duration 60 --output artifacts/phase06/final-validation
+```
+
+旧版`host/motionctl.py`的CSV模拟、校验、汇总、回放和文本记录入口继续保留，用于Phase 3
+回归。模拟数据只用于无硬件测试，不代表真实传感器测量，也不会写入Phase 6实机报告目录。

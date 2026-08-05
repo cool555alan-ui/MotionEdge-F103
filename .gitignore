@@ -19,10 +19,17 @@ cmake-build-*/
 /artifacts/rtos-validation/serial-raw.log
 /artifacts/rtos-validation/rtos-hardware-capture.csv
 /artifacts/rtos-validation/stability-soak-capture.csv
+/artifacts/phase06/**/serial-raw.bin
+/artifacts/phase06/**/serial-raw.log
+/artifacts/phase06/**/telemetry.csv
+/artifacts/phase06/**/report/*.png
+/artifacts/phase06/invalid-*/
+/artifacts/phase06/flash-log.txt
 Debug/
 Release/
 .settings/
 .idea/
 **/__pycache__/
+host/*.egg-info/
 Thumbs.db
 .DS_Store

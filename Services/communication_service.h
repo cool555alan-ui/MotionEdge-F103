@@ -19,6 +19,7 @@ typedef struct
     uint32_t parser_error_count;
     uint32_t command_error_count;
     uint32_t tx_error_count;
+    uint32_t uart_error_count;
 } CommunicationServiceStats_t;
 
 /** 初始化固定RX缓冲、Parser、命令服务和遥测序号。 */

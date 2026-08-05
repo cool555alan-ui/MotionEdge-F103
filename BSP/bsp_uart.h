@@ -22,5 +22,7 @@ BspUartStatus_t BspUart_TryReadByte(uint8_t *byte, bool *received);
 void BspUart_IrqHandler(void);
 /** 返回中断接收环形缓冲累计溢出次数。 */
 uint32_t BspUart_GetRxOverflowCount(void);
+/** 返回USART接收噪声、帧或溢出错误累计次数。 */
+uint32_t BspUart_GetRxErrorCount(void);
 
 #endif /* BSP_UART_H */

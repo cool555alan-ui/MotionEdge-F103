@@ -7,7 +7,7 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
-- 当前固件版本：`0.5.0`（Phase 5 实机验证通过）
+- 当前固件与Python工具版本：`0.6.0`（Phase 6 实机验证通过）
 
 ## Phase 1: Firmware Foundation
 
@@ -105,6 +105,34 @@ SensorTask、CommunicationTask、TelemetryTask和HealthTask。驱动、算法、
 详细说明见[第五阶段迁移记录](docs/phase-05-freertos-migration.md)和
 [RTOS任务设计](docs/rtos-task-design.md)。
 
+## Phase 6: Python Device Tools
+
+第六阶段将现有二进制协议包装为`motionctl 0.6.0`设备工具，提供端口枚举、设备诊断、
+信息/状态/配置、校准、流控制、实时监视、原子采集、离线校验、一键会话及自动报告。
+协议、Transport、设备请求、数据模型、统计、规则、报告和模拟器职责独立；固件协议未提供
+的字段明确显示`NOT_AVAILABLE`。
+
+```powershell
+python -m pip install -e .\host
+python -m motionctl ports
+python -m motionctl doctor --port COM4
+python -m motionctl session --port COM4 --duration 60 --output artifacts/phase06/final-validation
+```
+
+采集链同时保存设备时间和主机单调时间，自动生成Markdown、JSON、metrics CSV、姿态曲线
+和遥测间隔曲线。模拟器测试、离线报告测试和真实串口验收在证据中严格区分。
+
+2026-08-05 使用COM4上的CH340和真实STM32F103C8T6/MPU6500完成最终验收：逻辑PING
+100/100成功（1次线路瞬态超时由只读安全重试恢复）；干净采集60.0秒、601帧、
+10.0167 Hz，设备时间间隔固定100 ms，sequence固定+10，丢帧、重复、回退、主机CRC和
+Parser错误均为0。Roll范围-27.04°～33.35°，Pitch范围-40.58°～25.81°，平均加速度
+模长1001.75 mg；串口关闭1秒后重新打开并PING成功。最终证据位于
+`artifacts/phase06/final-validation/`。
+
+详细说明见[Phase 6设备工具](docs/phase-06-python-device-tools.md)、
+[CLI参考](docs/motionctl-cli-reference.md)和[报告格式](docs/automated-report-format.md)。
+下一阶段为Phase 7 MQTT网关与Node-RED，本阶段不包含这两项功能。
+
 ## 常用命令
 
 ```powershell
@@ -116,4 +144,6 @@ powershell -ExecutionPolicy Bypass -File .\tools\test-python.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase3.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase4.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase5.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\check-phase6.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\test-phase6.ps1
 ```

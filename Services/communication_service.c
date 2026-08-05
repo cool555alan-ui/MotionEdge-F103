@@ -12,7 +12,9 @@
 #include "telemetry_service.h"
 
 static uint8_t s_rx_storage[PROTOCOL_RX_STORAGE_SIZE];
-static uint8_t s_tx_buffer[PROTOCOL_MAX_FRAME_SIZE];
+/* 命令响应与周期遥测分别使用固定缓冲区，避免两个RTOS任务并发编码时互相覆盖。 */
+static uint8_t s_command_tx_buffer[PROTOCOL_MAX_FRAME_SIZE];
+static uint8_t s_telemetry_tx_buffer[PROTOCOL_MAX_FRAME_SIZE];
 static ByteRingBuffer_t s_rx_buffer;
 static ProtocolParser_t s_parser;
 static uint16_t s_telemetry_sequence;
@@ -29,12 +31,14 @@ static bool BspWriter(const uint8_t *data, size_t length)
     return BspUart_Write(data, length) == BSP_UART_OK;
 }
 
-static bool SendFrame(const ProtocolFrame_t *frame)
+static bool SendFrame(const ProtocolFrame_t *frame,
+                      uint8_t *tx_buffer,
+                      size_t tx_capacity)
 {
     size_t written;
-    if ((frame == NULL) || (s_writer == NULL) ||
-        !ProtocolFrame_Encode(frame, s_tx_buffer, sizeof(s_tx_buffer), &written) ||
-        !s_writer(s_tx_buffer, written))
+    if ((frame == NULL) || (tx_buffer == NULL) || (s_writer == NULL) ||
+        !ProtocolFrame_Encode(frame, tx_buffer, tx_capacity, &written) ||
+        !s_writer(tx_buffer, written))
     {
         ++s_tx_error_count;
         return false;
@@ -81,7 +85,9 @@ static void ParseCommands(void)
             }
             else if (CommandService_Process(&request, &response))
             {
-                (void)SendFrame(&response);
+                (void)SendFrame(&response,
+                                s_command_tx_buffer,
+                                sizeof(s_command_tx_buffer));
             }
             else
             {
@@ -109,7 +115,9 @@ void CommunicationService_RunTelemetry(uint32_t now_ms,
     if ((motion != NULL) &&
         TelemetryService_BuildMotion(motion, s_telemetry_sequence, &frame))
     {
-        (void)SendFrame(&frame);
+        (void)SendFrame(&frame,
+                        s_telemetry_tx_buffer,
+                        sizeof(s_telemetry_tx_buffer));
     }
     if ((s_telemetry_count % 10U) == 0U)
     {
@@ -129,7 +137,9 @@ void CommunicationService_RunTelemetry(uint32_t now_ms,
                                          ++s_telemetry_sequence,
                                          &frame))
         {
-            (void)SendFrame(&frame);
+            (void)SendFrame(&frame,
+                            s_telemetry_tx_buffer,
+                            sizeof(s_telemetry_tx_buffer));
         }
     }
 }
@@ -183,7 +193,9 @@ bool CommunicationService_ProcessCommand(const ProtocolFrame_t *request)
         ++s_command_error_count;
         return false;
     }
-    return SendFrame(&response);
+    return SendFrame(&response,
+                     s_command_tx_buffer,
+                     sizeof(s_command_tx_buffer));
 }
 
 void CommunicationService_RunOnce(uint32_t now_ms)
@@ -218,5 +230,6 @@ bool CommunicationService_GetStats(CommunicationServiceStats_t *stats)
     stats->parser_error_count = s_parser.length_errors + s_parser.version_errors;
     stats->command_error_count = s_command_error_count;
     stats->tx_error_count = s_tx_error_count;
+    stats->uart_error_count = BspUart_GetRxErrorCount();
     return true;
 }

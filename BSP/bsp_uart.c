@@ -11,11 +11,14 @@ static uint8_t s_rx_storage[BSP_UART_RX_CAPACITY];
 static volatile uint16_t s_rx_head;
 static volatile uint16_t s_rx_tail;
 static volatile uint32_t s_rx_overflow_count;
+static volatile uint32_t s_rx_error_count;
 static uint8_t s_rx_byte;
 
 static void StartReceiveInterrupt(void)
 {
-    if (HAL_UART_Receive_IT(&huart1, &s_rx_byte, 1U) != HAL_OK)
+    HAL_StatusTypeDef status = HAL_UART_Receive_IT(&huart1, &s_rx_byte, 1U);
+
+    if ((status != HAL_OK) && (huart1.RxState != HAL_UART_STATE_BUSY_RX))
     {
         s_uart_ready = false;
     }
@@ -32,8 +35,10 @@ BspUartStatus_t BspUart_Init(void)
     s_rx_head = 0U;
     s_rx_tail = 0U;
     s_rx_overflow_count = 0U;
+    s_rx_error_count = 0U;
     s_uart_ready = true;
-    HAL_NVIC_SetPriority(USART1_IRQn, 6U, 0U);
+    /* 接收ISR不调用RTOS API，优先级4可避免被FreeRTOS临界区屏蔽而产生ORE。 */
+    HAL_NVIC_SetPriority(USART1_IRQn, 4U, 0U);
     HAL_NVIC_EnableIRQ(USART1_IRQn);
     StartReceiveInterrupt();
     if (!s_uart_ready)
@@ -117,6 +122,11 @@ uint32_t BspUart_GetRxOverflowCount(void)
     return s_rx_overflow_count;
 }
 
+uint32_t BspUart_GetRxErrorCount(void)
+{
+    return s_rx_error_count;
+}
+
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     if ((huart != NULL) && (huart->Instance == USART1))
@@ -139,6 +149,17 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if ((huart != NULL) && (huart->Instance == USART1))
     {
-        StartReceiveInterrupt();
+        ++s_rx_error_count;
+        /*
+         * HAL对噪声/帧错误保持当前中断接收为BUSY，仅ORE会结束接收。
+         * 只有接收已经回到READY时才重新挂载，避免把合法HAL_BUSY误判为永久故障。
+         */
+        /* F1通过依次读取SR和DR清除PE/FE/NE/ORE，避免错误中断反复进入。 */
+        __HAL_UART_CLEAR_PEFLAG(huart);
+        /* ORE属于阻塞错误，HAL已结束接收；FE/NE保持BUSY时无需中断当前接收。 */
+        if (huart->RxState == HAL_UART_STATE_READY)
+        {
+            StartReceiveInterrupt();
+        }
     }
 }

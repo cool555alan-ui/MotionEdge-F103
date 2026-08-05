@@ -1,0 +1,140 @@
+"""稳定、带单位且允许缺失字段的数据模型。"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from typing import Any
+
+
+def stable_dict(value: Any) -> Any:
+    if hasattr(value, "__dataclass_fields__"):
+        return {key: stable_dict(item) for key, item in asdict(value).items()}
+    if isinstance(value, dict):
+        return {str(key): stable_dict(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [stable_dict(item) for item in value]
+    return value
+
+
+@dataclass(frozen=True)
+class PortInfo:
+    device: str
+    description: str | None = None
+    vid: int | None = None
+    pid: int | None = None
+    serial_number: str | None = None
+    likely_role: str = "unknown"
+
+
+@dataclass(frozen=True)
+class DeviceInfo:
+    firmware_version: str
+    protocol_version: int
+    device_name: str | None = None
+    mcu_model: str | None = None
+    imu_model: str | None = None
+    who_am_i: int | None = None
+    capabilities: int | None = None
+    build_type: str | None = None
+    available_commands: tuple[int, ...] | None = None
+
+
+@dataclass(frozen=True)
+class DeviceStatus:
+    app_state_raw: int
+    sensor_state_raw: int
+    app_state: str
+    sensor_state: str
+    calibrated: bool | None = None
+    stream_enabled: bool | None = None
+    uptime_ms: int | None = None
+    task_frequency_hz: dict[str, float] | None = None
+    deadline_miss: dict[str, int] | None = None
+    queue: dict[str, int] | None = None
+    mutex_timeouts: dict[str, int] | None = None
+    heap_bytes: dict[str, int] | None = None
+    stack_remaining_bytes: dict[str, int] | None = None
+    protocol_errors: dict[str, int] | None = None
+    uart_errors: int | None = None
+
+
+@dataclass(frozen=True)
+class MotionSample:
+    device_timestamp_ms: int
+    sample_sequence: int
+    status_flags: int
+    calibrated: bool
+    ax_mg: int
+    ay_mg: int
+    az_mg: int
+    gx_mdps: int
+    gy_mdps: int
+    gz_mdps: int
+    roll_deg: float
+    pitch_deg: float
+    roll_cdeg_raw: int
+    pitch_cdeg_raw: int
+    host_monotonic_ns: int | None = None
+
+
+@dataclass(frozen=True)
+class HealthSample:
+    uptime_ms: int
+    app_state_raw: int
+    sensor_state_raw: int
+    loop_count: int
+    i2c_errors: int
+    invalid_samples: int
+    protocol_rx_frames: int
+    protocol_crc_errors: int
+    uart_rx_overflows: int
+    host_monotonic_ns: int | None = None
+
+
+@dataclass(frozen=True)
+class CommandResult:
+    command: str
+    success: bool
+    rtt_ms: float
+    sequence: int
+    error: str | None = None
+
+
+@dataclass(frozen=True)
+class CaptureMetadata:
+    tool_version: str
+    started_at: str
+    requested_duration_s: float
+    port: str
+    baud: int
+    git_commit: str | None
+    device_info: DeviceInfo | None
+    initial_config: dict[str, Any] | None
+    simulated: bool = False
+    ping_ok: bool | None = None
+    command_success_rate: float | None = None
+    command_metrics: dict[str, Any] | None = None
+    fault_seen: bool | None = None
+    degraded_persistent: bool | None = None
+
+
+@dataclass(frozen=True)
+class ValidationItem:
+    name: str
+    status: str
+    actual: Any
+    threshold: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    conclusion: str
+    items: tuple[ValidationItem, ...]
+
+
+@dataclass(frozen=True)
+class ReportSummary:
+    metrics: dict[str, Any]
+    validation: ValidationResult
+    charts: tuple[str, ...] = field(default_factory=tuple)

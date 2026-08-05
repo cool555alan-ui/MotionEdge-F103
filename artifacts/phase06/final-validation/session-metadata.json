@@ -1,0 +1,50 @@
+{
+  "tool_version": "0.6.0",
+  "started_at": "2026-08-05T23:10:27+08:00",
+  "requested_duration_s": 60.0,
+  "port": "COM4",
+  "baud": 115200,
+  "git_commit": "7314281bf4389df28610909403f030f5a576cec5",
+  "device_info": {
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "device_name": null,
+    "mcu_model": null,
+    "imu_model": null,
+    "who_am_i": null,
+    "capabilities": null,
+    "build_type": null,
+    "available_commands": null
+  },
+  "initial_config": {
+    "sensor_ms": 10,
+    "telemetry_ms": 100,
+    "alpha_milli": 200,
+    "gyro_weight_milli": 980,
+    "log_level": 1,
+    "telemetry_enabled": true
+  },
+  "simulated": false,
+  "ping_ok": true,
+  "command_success_rate": 100.0,
+  "command_metrics": {
+    "requests": 4,
+    "successes": 4,
+    "timeouts": 0,
+    "errors": 0,
+    "success_rate_percent": 100.0,
+    "rtt_ms": {
+      "mean": 100.610925,
+      "median": 100.1938,
+      "p95": 109.68141999999999,
+      "max": 109.975
+    },
+    "wire_attempts": 4,
+    "wire_timeouts": 0,
+    "wire_errors": 0,
+    "retry_count": 0,
+    "wire_success_rate_percent": 100.0
+  },
+  "fault_seen": false,
+  "degraded_persistent": false
+}
