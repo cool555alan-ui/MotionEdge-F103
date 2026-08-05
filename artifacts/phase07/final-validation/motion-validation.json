@@ -1,0 +1,45 @@
+{
+  "result": "PASS",
+  "validation_date": "2026-08-06T00:45:45.787910+08:00",
+  "duration_seconds": 30,
+  "frames": 300,
+  "sequence_continuous": true,
+  "roll_deg": {
+    "min": -54.7,
+    "max": 56.85,
+    "span": 111.55000000000001
+  },
+  "pitch_deg": {
+    "min": -27.41,
+    "max": 29.98,
+    "span": 57.39
+  },
+  "accel_mg": {
+    "x": {
+      "min": -502.0,
+      "max": 452.0
+    },
+    "y": {
+      "min": -782.0,
+      "max": 874.0
+    },
+    "z": {
+      "min": 484.0,
+      "max": 1098.0
+    }
+  },
+  "gyro_mdps": {
+    "x": {
+      "min": -101267.0,
+      "max": 89340.0
+    },
+    "y": {
+      "min": -107704.0,
+      "max": 93493.0
+    },
+    "z": {
+      "min": -14468.0,
+      "max": 10692.0
+    }
+  }
+}

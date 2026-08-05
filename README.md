@@ -133,6 +133,19 @@ Parser错误均为0。Roll范围-27.04°～33.35°，Pitch范围-40.58°～25.81
 [CLI参考](docs/motionctl-cli-reference.md)和[报告格式](docs/automated-report-format.md)。
 下一阶段为Phase 7 MQTT网关与Node-RED，本阶段不包含这两项功能。
 
+## Phase 7: MQTT Gateway and Node-RED
+
+Phase 7 keeps firmware at `0.6.0` and updates the Windows `motionctl` gateway to `0.7.0`. The path is MPU6500 -> STM32F103/FreeRTOS -> CRC16 serial protocol -> Python gateway -> local Mosquitto -> Node-RED. Topic, startup, dashboard, and validation details are in [the gateway guide](docs/phase-07-mqtt-gateway.md), [topic contract](docs/mqtt-topic-contract.md), [Node-RED guide](docs/node-red-dashboard.md), and [validation method](docs/phase-07-validation-method.md).
+
+The isolated development broker binds only to `127.0.0.1:1884`; TLS is disabled, so it is not a public-cloud or production deployment. Phase 8 is attitude accuracy and parameter tuning, not actuator control.
+
+```powershell
+.\tools\start-phase07-broker.ps1
+.\tools\start-phase07-node-red.ps1
+.\tools\import-node-red-phase07.ps1
+python -m motionctl gateway run --config .\config\motionedge-gateway.toml
+```
+
 ## 常用命令
 
 ```powershell

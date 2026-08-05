@@ -50,8 +50,9 @@ try {
         ((Test-Path docs\phase-06-python-device-tools.md) -and
          (Test-Path docs\motionctl-cli-reference.md) -and
          (Test-Path docs\automated-report-format.md)) 'three Phase 6 documents'
-    $version = Get-Content -Raw -Encoding UTF8 host\motionctl\__init__.py
-    Check 'Tool version' ($version -match '__version__\s*=\s*"0\.6\.0"') '0.6.0'
+    $versionText = (python -m motionctl --version 2>&1 | Select-Object -First 1)
+    try { $toolVersion = [version]$versionText } catch { $toolVersion = [version]'0.0.0' }
+    Check 'Tool version' ($toolVersion -ge [version]'0.6.0') "$toolVersion (Phase 6 minimum 0.6.0)"
     $trackedTemp = @(git ls-files 'artifacts/phase06/**/serial-raw.*' 'artifacts/phase06/**/telemetry.csv')
     Check 'Temporary captures untracked' ($trackedTemp.Count -eq 0) 'raw and telemetry CSV ignored'
     & powershell -ExecutionPolicy Bypass -File tools\test-phase6.ps1

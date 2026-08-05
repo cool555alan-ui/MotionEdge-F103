@@ -1,0 +1,36 @@
+[gateway]
+gateway_id = "motionedge-gateway-01"
+device_id = "motionedge-f103-01"
+
+[serial]
+port = "COM4"
+baud = 115200
+read_timeout_ms = 50
+reconnect_initial_ms = 500
+reconnect_max_ms = 10000
+
+[mqtt]
+host = "127.0.0.1"
+port = 1884
+keepalive_s = 30
+client_id = "motionedge-gateway-01"
+username = ""
+password_env = "MOTIONEDGE_MQTT_PASSWORD"
+qos_telemetry = 0
+qos_state = 1
+qos_command = 1
+reconnect_initial_ms = 500
+reconnect_max_ms = 10000
+
+[publish]
+motion_enabled = true
+health_enabled = true
+status_period_s = 5
+gateway_metrics_period_s = 10
+
+[limits]
+telemetry_queue_capacity = 64
+command_queue_capacity = 16
+command_dedup_capacity = 128
+command_dedup_ttl_s = 600
+maximum_command_age_s = 30

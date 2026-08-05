@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "gateway_id": "motionedge-gateway-01",
+  "device_id": "motionedge-f103-01",
+  "uptime_s": 494.4496650000001,
+  "device_frames": 5356,
+  "motion_published": 4869,
+  "health_published": 487,
+  "mqtt_messages_published": 5608,
+  "telemetry_dropped": 0,
+  "logical_requests": 5,
+  "transport_attempts": 3,
+  "safe_retries": 0,
+  "command_success": 3,
+  "command_errors": 0,
+  "duplicate_commands": 1,
+  "expired_commands": 0,
+  "retained_rejected": 1,
+  "mqtt_reconnects": 0,
+  "serial_reconnects": 0,
+  "command_queue_high_water": 2,
+  "gateway_processing_ms": {
+    "count": 4096,
+    "mean": 0.2627970703125,
+    "p50": 0.25734999999999997,
+    "p95": 0.32615,
+    "max": 0.7663
+  },
+  "command_round_trip_ms": {
+    "count": 4,
+    "mean": 73.647075,
+    "p50": 92.90469999999999,
+    "p95": 106.402565,
+    "max": 108.6845
+  },
+  "published_at": "2026-08-05T16:41:55.607Z"
+}

@@ -1,0 +1,20 @@
+{
+  "motion_received": 4934,
+  "health_received": 493,
+  "duplicate_received": 0,
+  "invalid_json": 0,
+  "schema_error": 0,
+  "sequence_gap": 0,
+  "command_sent": 0,
+  "command_success": 1,
+  "command_timeout": 0,
+  "last_sequence": 638569,
+  "last_motion_unix_ms": 1785948122300,
+  "local_receive_latency_ms": {
+    "count": 1000,
+    "p50": 0,
+    "p95": 1,
+    "max": 2
+  },
+  "note": "?????Broker????,??????????"
+}

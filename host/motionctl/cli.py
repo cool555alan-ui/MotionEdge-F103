@@ -1,4 +1,4 @@
-"""MotionEdge 0.6.0 设备管理、采集、校验与报告命令行。"""
+"""MotionEdge设备管理、采集、报告与MQTT网关命令行。"""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from .commands import RuntimeConfig, decode_device_info, decode_motion, decode_s
 from .device import DeviceClient
 from .errors import (EXIT_REPORT, EXIT_RUNTIME, EXIT_SUCCESS, MotionCtlError,
                      ReportError, ValidationError)
+from .gateway_cli import add_gateway_parser, run_gateway_command
 from .metrics import command_metrics, motion_metrics
 from .models import CaptureMetadata, stable_dict
 from .report import generate_report
@@ -33,6 +34,7 @@ def _connection(parser, *, port_required=True):
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--version", action="version", version=__version__)
     parser.add_argument("--verbose", action="store_true")
     subs = parser.add_subparsers(dest="command", required=True)
     subs.add_parser("ports")
@@ -58,6 +60,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate = subs.add_parser("validate"); validate.add_argument("session", type=Path)
     report = subs.add_parser("report"); report.add_argument("session", type=Path); report.add_argument("--output", type=Path, required=True)
     subs.add_parser("simulate-device"); subs.add_parser("self-test")
+    add_gateway_parser(subs)
     return parser
 
 
@@ -146,6 +149,8 @@ def _capture_with_state(client, args, metadata, *, interactive=False):
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "gateway":
+            return run_gateway_command(args)
         if args.command == "ports":
             ports = list_ports()
             if not ports: print("No serial ports found.")

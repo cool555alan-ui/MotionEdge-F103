@@ -1,0 +1,12 @@
+{
+  "simulated": true,
+  "result": "PASS",
+  "messages": 49,
+  "motion": 20,
+  "responses": 4,
+  "duplicate_response": true,
+  "expired_rejected": true,
+  "retained_rejected": true,
+  "lwt_offline": true,
+  "broker_recovery_s": 3.572241699999722
+}

@@ -1,0 +1,203 @@
+{
+  "result": "PASS",
+  "validation_date": "2026-08-06T00:42:03.365100+08:00",
+  "environment": {
+    "git_commit": "d3cd713e75642f32fb2411f8a6ffaa8708b352f9",
+    "motionctl": "0.7.0",
+    "firmware": "0.6.0",
+    "paho_mqtt": "2.1.0",
+    "mosquitto": "2.1.2",
+    "node_red": "Node-RED v5.0.1\nNode.js v24.15.0\nWindows_NT 10.0.26200 x64 LE"
+  },
+  "duration_seconds": 600.1650606000003,
+  "serial": {
+    "port": "COM4",
+    "baud": 115200
+  },
+  "broker": "127.0.0.1:1884",
+  "motion_frames": 5698,
+  "stable_motion_frames": 4934,
+  "health_frames": 562,
+  "node_red_motion": 4934,
+  "message_loss": 0,
+  "frequency_hz": 10.0,
+  "sequence": {
+    "gaps": 0,
+    "duplicates": 0,
+    "regressions": 0
+  },
+  "attitude_deg": {
+    "roll_min": -2.73,
+    "roll_max": 0.21,
+    "pitch_min": -1.04,
+    "pitch_max": 0.02
+  },
+  "accel_norm_mg": {
+    "mean": 999.8956705155778,
+    "min": 966.7869465399292,
+    "max": 1137.0496910865418
+  },
+  "device_error_delta": {
+    "protocol_crc": 0,
+    "uart_overflow": 0
+  },
+  "topic_counts": {
+    "motionedge/v1/gateways/motionedge-gateway-01/availability": 6,
+    "motionedge/v1/devices/motionedge-f103-01/availability": 4,
+    "motionedge/v1/devices/motionedge-f103-01/meta": 3,
+    "motionedge/v1/devices/motionedge-f103-01/state": 118,
+    "motionedge/v1/gateways/motionedge-gateway-01/state": 118,
+    "motionedge/v1/devices/motionedge-f103-01/telemetry/motion": 5698,
+    "motionedge/v1/devices/motionedge-f103-01/telemetry/health": 562,
+    "motionedge/v1/gateways/motionedge-gateway-01/metrics": 57,
+    "motionedge/v1/devices/motionedge-f103-01/command": 115,
+    "motionedge/v1/devices/motionedge-f103-01/response": 114
+  },
+  "local_latency_ms": {
+    "p50": 1,
+    "p95": 2,
+    "max": 3
+  },
+  "ping": {
+    "logical": 100,
+    "success": 100,
+    "transport_attempts": 103,
+    "safe_retries": 3,
+    "rtt_p50_ms": 201.89,
+    "rtt_p95_ms": 216.5772,
+    "rtt_max_ms": 1308.6015
+  },
+  "broker_recovery_seconds": 2.797986600002332,
+  "lwt": true,
+  "gateway_memory_bytes": {
+    "min": 36929536,
+    "max": 37543936
+  },
+  "gateway_metrics": {
+    "schema_version": 1,
+    "gateway_id": "motionedge-gateway-01",
+    "device_id": "motionedge-f103-01",
+    "uptime_s": 494.4496650000001,
+    "device_frames": 5356,
+    "motion_published": 4869,
+    "health_published": 487,
+    "mqtt_messages_published": 5608,
+    "telemetry_dropped": 0,
+    "logical_requests": 5,
+    "transport_attempts": 3,
+    "safe_retries": 0,
+    "command_success": 3,
+    "command_errors": 0,
+    "duplicate_commands": 1,
+    "expired_commands": 0,
+    "retained_rejected": 1,
+    "mqtt_reconnects": 0,
+    "serial_reconnects": 0,
+    "command_queue_high_water": 2,
+    "gateway_processing_ms": {
+      "count": 4096,
+      "mean": 0.2627970703125,
+      "p50": 0.25734999999999997,
+      "p95": 0.32615,
+      "max": 0.7663
+    },
+    "command_round_trip_ms": {
+      "count": 4,
+      "mean": 73.647075,
+      "p50": 92.90469999999999,
+      "p95": 106.402565,
+      "max": 108.6845
+    },
+    "published_at": "2026-08-05T16:41:55.607Z"
+  },
+  "node_red_metrics": {
+    "motion_received": 4934,
+    "health_received": 493,
+    "duplicate_received": 0,
+    "invalid_json": 0,
+    "schema_error": 0,
+    "sequence_gap": 0,
+    "command_sent": 0,
+    "command_success": 1,
+    "command_timeout": 0,
+    "last_sequence": 638569,
+    "last_motion_unix_ms": 1785948122300,
+    "local_receive_latency_ms": {
+      "count": 1000,
+      "p50": 0,
+      "p95": 1,
+      "max": 2
+    },
+    "note": "?????Broker????,??????????"
+  },
+  "checks": {
+    "gateway_online": "PASS",
+    "device_online": "PASS",
+    "meta_state_retained": "PASS",
+    "telemetry_not_retained": "PASS",
+    "duration_600_seconds": "PASS",
+    "telemetry_frequency": "PASS",
+    "sequence_integrity": "PASS",
+    "json_schema_errors": "PASS",
+    "node_red_sequence": "PASS",
+    "device_crc_no_increase": "PASS",
+    "uart_overflow_no_increase": "PASS",
+    "motion_range": "PASS",
+    "ping_100_success": "PASS",
+    "command_p95_under_500_ms": "PASS",
+    "duplicate_not_reexecuted": "PASS",
+    "expired_rejected": "PASS",
+    "retained_rejected": "PASS",
+    "broker_recovery_under_10_s": "PASS",
+    "lwt_offline": "PASS",
+    "node_red_message_loss": "PASS",
+    "local_latency_p95": "PASS",
+    "stream_state_restored": "PASS",
+    "gateway_memory_bounded": "PASS"
+  },
+  "motion_validation": {
+    "result": "PASS",
+    "validation_date": "2026-08-06T00:45:45.787910+08:00",
+    "duration_seconds": 30,
+    "frames": 300,
+    "sequence_continuous": true,
+    "roll_deg": {
+      "min": -54.7,
+      "max": 56.85,
+      "span": 111.55000000000001
+    },
+    "pitch_deg": {
+      "min": -27.41,
+      "max": 29.98,
+      "span": 57.39
+    },
+    "accel_mg": {
+      "x": {
+        "min": -502.0,
+        "max": 452.0
+      },
+      "y": {
+        "min": -782.0,
+        "max": 874.0
+      },
+      "z": {
+        "min": 484.0,
+        "max": 1098.0
+      }
+    },
+    "gyro_mdps": {
+      "x": {
+        "min": -101267.0,
+        "max": 89340.0
+      },
+      "y": {
+        "min": -107704.0,
+        "max": 93493.0
+      },
+      "z": {
+        "min": -14468.0,
+        "max": 10692.0
+      }
+    }
+  }
+}

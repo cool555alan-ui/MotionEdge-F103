@@ -1,0 +1,7 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MotionEdge Phase 7</title><link rel="stylesheet" href="/motionedge/style.css"></head><body>
+<header><h1>MotionEdge 本地物联网监控</h1><span id="connection" class="badge offline">连接中</span></header>
+<main><section><h2>设备概览</h2><div id="overview" class="grid"></div></section>
+<section><h2>最近60秒姿态</h2><canvas id="chart" width="1000" height="300"></canvas></section>
+<section><h2>系统健康</h2><div id="health" class="grid"></div></section>
+<section><h2>设备命令</h2><div class="commands"><button data-command="ping">PING</button><button data-command="get_status">刷新状态</button><button data-command="get_config">读取配置</button><button data-command="start_calibration" data-confirm="请保持设备静止，确认开始校准？">启动校准</button><button data-command="set_stream_state" data-enabled="true">开启流</button><button data-command="set_stream_state" data-enabled="false">关闭流</button></div><pre id="response">尚无命令响应</pre></section>
+<p class="boundary">仅连接本机Mosquitto；未启用TLS，不适用于公网生产环境。</p></main><script src="/motionedge/app.js"></script></body></html>
