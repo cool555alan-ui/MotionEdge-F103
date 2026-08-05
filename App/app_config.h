@@ -37,6 +37,8 @@
 #define APP_I2C_TRANSFER_TIMEOUT_MS 10U
 /* 首次全地址扫描失败后的总线恢复与重试次数。 */
 #define APP_I2C_SCAN_MAX_RETRIES 2U
+/* 运行期间传感器掉线后的总线与器件重试间隔，避免故障时高频阻塞任务。 */
+#define APP_SENSOR_RECOVERY_PERIOD_MS 1000U
 
 /* CSV行缓冲区容量，包含字符串结束符。 */
 #define APP_CSV_BUFFER_SIZE 192U

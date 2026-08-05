@@ -93,7 +93,10 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  (void)App_Init(HAL_GetTick());
+  if (!App_Init(HAL_GetTick()))
+  {
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -112,7 +115,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    App_RunOnce(HAL_GetTick());
+    /* RTOS调度器接管应用；保留循环仅作为osKernelStart异常返回保护。 */
   }
   /* USER CODE END 3 */
 }

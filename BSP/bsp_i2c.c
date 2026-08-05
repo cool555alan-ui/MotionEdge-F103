@@ -125,7 +125,7 @@ BspI2cStatus_t BspI2c_IsDeviceReady(uint8_t address_7bit)
     {
         return BSP_I2C_ERROR_INVALID_ARG;
     }
-    if (!s_i2c_ready)
+    if (!s_i2c_ready && (BspI2c_RecoverBus() != BSP_I2C_OK))
     {
         return BSP_I2C_ERROR_NOT_READY;
     }
@@ -147,7 +147,7 @@ BspI2cStatus_t BspI2c_ReadRegister(uint8_t address_7bit,
     {
         return BSP_I2C_ERROR_INVALID_ARG;
     }
-    if (!s_i2c_ready)
+    if (!s_i2c_ready && (BspI2c_RecoverBus() != BSP_I2C_OK))
     {
         return BSP_I2C_ERROR_NOT_READY;
     }
@@ -185,7 +185,7 @@ BspI2cStatus_t BspI2c_WriteRegister(uint8_t address_7bit,
     {
         return BSP_I2C_ERROR_INVALID_ARG;
     }
-    if (!s_i2c_ready)
+    if (!s_i2c_ready && (BspI2c_RecoverBus() != BSP_I2C_OK))
     {
         return BSP_I2C_ERROR_NOT_READY;
     }

@@ -1,0 +1,39 @@
+{
+  "validation_date": "2026-08-05T21:16:53+08:00",
+  "port": "COM4",
+  "baud": 115200,
+  "elapsed_seconds": 600.0002233000005,
+  "frame_count": 6001,
+  "continuity": {
+    "monotonic": true,
+    "mean_interval_ms": 100.0,
+    "median_interval_ms": 100.0,
+    "expected_sequence_step": 10,
+    "estimated_lost_frames": 0,
+    "sequence_regressions": 0,
+    "reset_boundaries": 0
+  },
+  "deadline_miss_delta": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "state_counts": {
+    "RUNNING": 601,
+    "DEGRADED": 0,
+    "FAULT": 0
+  },
+  "parse_errors": 0,
+  "checks": {
+    "duration_600_seconds": "PASS",
+    "valid_frames": "PASS",
+    "timestamp_continuity": "PASS",
+    "sequence_continuity": "PASS",
+    "application_running": "PASS",
+    "deadline_no_increase": "PASS",
+    "serial_parse_errors": "PASS",
+    "fatal_hooks": "PASS",
+    "communication_errors": "PASS"
+  }
+}

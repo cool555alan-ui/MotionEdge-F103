@@ -16,6 +16,9 @@ cmake-build-*/
 *.tmp
 *.log
 /artifacts/hardware-validation/hardware-capture.csv
+/artifacts/rtos-validation/serial-raw.log
+/artifacts/rtos-validation/rtos-hardware-capture.csv
+/artifacts/rtos-validation/stability-soak-capture.csv
 Debug/
 Release/
 .settings/

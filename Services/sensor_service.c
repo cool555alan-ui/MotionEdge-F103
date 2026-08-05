@@ -13,6 +13,8 @@ static uint16_t s_period_ms = APP_SENSOR_SAMPLE_PERIOD_MS;
 
 bool SensorService_Init(Mpu6500_t *device, uint32_t now_ms)
 {
+    uint32_t previous_sequence = s_initialized ? s_latest_sample.sequence : 0U;
+
     if ((device == NULL) || !device->initialized || !device->awake ||
         !SoftwareTimer_Init(&s_sample_timer, now_ms, s_period_ms))
     {
@@ -21,6 +23,8 @@ bool SensorService_Init(Mpu6500_t *device, uint32_t now_ms)
 
     s_device = device;
     s_latest_sample = (SensorSample_t){0};
+    /* 运行时重新初始化不能让遥测序号回退，否则会伪装成大量丢帧。 */
+    s_latest_sample.sequence = previous_sequence;
     s_initialized = true;
     s_has_sample = false;
     return true;

@@ -3,6 +3,10 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Algorithms/low_pass_filter.c
     ${CMAKE_SOURCE_DIR}/App/app_main.c
     ${CMAKE_SOURCE_DIR}/App/app_status.c
+    ${CMAKE_SOURCE_DIR}/App/RTOS/app_rtos.c
+    ${CMAKE_SOURCE_DIR}/App/RTOS/rtos_tasks.c
+    ${CMAKE_SOURCE_DIR}/App/RTOS/rtos_objects.c
+    ${CMAKE_SOURCE_DIR}/App/RTOS/rtos_monitor.c
     ${CMAKE_SOURCE_DIR}/BSP/bsp_led.c
     ${CMAKE_SOURCE_DIR}/BSP/bsp_i2c.c
     ${CMAKE_SOURCE_DIR}/BSP/bsp_uart.c
@@ -28,6 +32,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Algorithms
     ${CMAKE_SOURCE_DIR}/App
+    ${CMAKE_SOURCE_DIR}/App/RTOS
     ${CMAKE_SOURCE_DIR}/BSP
     ${CMAKE_SOURCE_DIR}/Common
     ${CMAKE_SOURCE_DIR}/Devices

@@ -33,11 +33,19 @@ static bool s_csv_header_written = false;
 static uint32_t s_last_csv_sequence = 0U;
 static bool s_has_csv_sequence = false;
 static CalibrationState_t s_last_calibration_state = CALIBRATION_STATE_IDLE;
+static uint32_t s_next_sensor_recovery_ms = 0U;
 static char s_csv_buffer[APP_CSV_BUFFER_SIZE];
+
+static bool App_DefaultUartWriter(const uint8_t *data, size_t length)
+{
+    return BspUart_Write(data, length) == BSP_UART_OK;
+}
+
+static AppUartWriter_t s_uart_writer = App_DefaultUartWriter;
 
 static bool App_UartLogWriter(const uint8_t *data, size_t length)
 {
-    return BspUart_Write(data, length) == BSP_UART_OK;
+    return (s_uart_writer != NULL) && s_uart_writer(data, length);
 }
 
 static void App_RecordLogResult(bool result)
@@ -122,7 +130,7 @@ static void App_CompleteI2cScan(uint32_t now_ms)
         return;
     }
     if ((Mpu6500_ReadWhoAmI(&s_mpu6500, &identity) != MPU6500_OK) ||
-        (identity != MPU6500_WHO_AM_I_VALUE))
+        (s_mpu6500.model == MPU6XXX_MODEL_UNKNOWN))
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
         App_RecordLogResult(Logger_WriteFormatted(LOG_LEVEL_ERROR,
@@ -131,11 +139,13 @@ static void App_CompleteI2cScan(uint32_t now_ms)
                                                   (unsigned int)identity));
         return;
     }
-    App_RecordLogResult(Logger_WriteFormatted(LOG_LEVEL_INFO,
-                                              "MPU6500",
-                                              "WHO_AM_I=0x%02X address=0x%02X",
-                                              (unsigned int)identity,
-                                              (unsigned int)s_mpu6500_address));
+    App_RecordLogResult(
+        Logger_WriteFormatted(LOG_LEVEL_INFO,
+                              "MPU6XXX",
+                              "model=%s WHO_AM_I=0x%02X address=0x%02X",
+                              Mpu6500_ModelToString(s_mpu6500.model),
+                              (unsigned int)identity,
+                              (unsigned int)s_mpu6500_address));
     if (Mpu6500_Wake(&s_mpu6500) != MPU6500_OK)
     {
         (void)AppStatus_SetState(APP_STATE_DEGRADED);
@@ -222,23 +232,22 @@ static void App_ReportCalibration(void)
     s_last_calibration_state = state;
 }
 
-static void App_WriteTelemetry(void)
+static void App_WriteTelemetry(const MotionFrame_t *frame)
 {
-    MotionFrame_t frame;
     size_t written;
 
-    if (!MotionService_GetLatestFrame(&frame))
+    if ((frame == NULL) || !frame->valid)
     {
         return;
     }
-    if (s_has_csv_sequence && (frame.sequence == s_last_csv_sequence))
+    if (s_has_csv_sequence && (frame->sequence == s_last_csv_sequence))
     {
         return;
     }
     if (!s_csv_header_written)
     {
         if (!CsvTelemetry_WriteHeader(s_csv_buffer, sizeof(s_csv_buffer), &written) ||
-            (BspUart_Write((const uint8_t *)s_csv_buffer, written) != BSP_UART_OK))
+            !App_UartLogWriter((const uint8_t *)s_csv_buffer, written))
         {
             HealthService_RecordLogFailure();
             return;
@@ -246,13 +255,13 @@ static void App_WriteTelemetry(void)
         s_csv_header_written = true;
     }
     if (!CsvTelemetry_WriteFrame(
-            &frame, s_csv_buffer, sizeof(s_csv_buffer), &written) ||
-        (BspUart_Write((const uint8_t *)s_csv_buffer, written) != BSP_UART_OK))
+            frame, s_csv_buffer, sizeof(s_csv_buffer), &written) ||
+        !App_UartLogWriter((const uint8_t *)s_csv_buffer, written))
     {
         HealthService_RecordLogFailure();
         return;
     }
-    s_last_csv_sequence = frame.sequence;
+    s_last_csv_sequence = frame->sequence;
     s_has_csv_sequence = true;
 }
 
@@ -275,15 +284,66 @@ static void App_RunMotionPipeline(uint32_t now_ms)
     {
         (void)AppStatus_SetState(APP_STATE_RUNNING);
     }
-    if (!CommunicationService_IsProtocolMode() &&
-        SoftwareTimer_IsDue(&s_calibration_report_timer, now_ms))
+}
+
+static bool App_IsTimeReached(uint32_t now_ms, uint32_t deadline_ms)
+{
+    return (int32_t)(now_ms - deadline_ms) >= 0;
+}
+
+static bool App_ReinitializeSensor(uint32_t now_ms)
+{
+    uint8_t identity = 0U;
+    uint8_t address = s_mpu6500_address;
+
+    if ((BspI2c_RecoverBus() != BSP_I2C_OK) ||
+        (BspI2c_IsDeviceReady(address) != BSP_I2C_OK))
     {
-        App_ReportCalibration();
+        return false;
     }
-    if (!CommunicationService_IsProtocolMode() &&
-        SoftwareTimer_IsDue(&s_attitude_report_timer, now_ms))
+    if ((Mpu6500_Init(&s_mpu6500, address, App_Mpu6500Read, App_Mpu6500Write) !=
+         MPU6500_OK) ||
+        (Mpu6500_ReadWhoAmI(&s_mpu6500, &identity) != MPU6500_OK) ||
+        (s_mpu6500.model == MPU6XXX_MODEL_UNKNOWN) ||
+        (Mpu6500_Wake(&s_mpu6500) != MPU6500_OK) ||
+        !SensorService_Init(&s_mpu6500, now_ms) ||
+        !MotionService_StartCalibration())
     {
-        App_WriteTelemetry();
+        return false;
+    }
+
+    /* 传感器可能已经掉电复位，恢复后必须重新确认身份并重新校准。 */
+    s_last_calibration_state = CALIBRATION_STATE_IDLE;
+    App_RecordLogResult(
+        Logger_WriteFormatted(LOG_LEVEL_INFO,
+                              "I2C",
+                              "recovery device found address=0x%02X",
+                              (unsigned int)address));
+    App_RecordLogResult(
+        Logger_WriteFormatted(LOG_LEVEL_INFO,
+                              "MPU6XXX",
+                              "recovery model=%s WHO_AM_I=0x%02X address=0x%02X",
+                              Mpu6500_ModelToString(s_mpu6500.model),
+                              (unsigned int)identity,
+                              (unsigned int)address));
+    App_RecordLogResult(
+        Logger_Write(LOG_LEVEL_INFO, "CAL", "recovery calibration started"));
+    return true;
+}
+
+static void App_RunSensorRecovery(uint32_t now_ms)
+{
+    if ((MotionService_GetState() != MOTION_SERVICE_STATE_DEGRADED) ||
+        !App_IsTimeReached(now_ms, s_next_sensor_recovery_ms))
+    {
+        return;
+    }
+
+    s_next_sensor_recovery_ms = now_ms + APP_SENSOR_RECOVERY_PERIOD_MS;
+    if (!App_ReinitializeSensor(now_ms))
+    {
+        App_RecordLogResult(
+            Logger_Write(LOG_LEVEL_WARN, "I2C", "runtime sensor recovery pending"));
     }
 }
 
@@ -343,11 +403,65 @@ bool App_Init(uint32_t now_ms)
     s_last_csv_sequence = 0U;
     s_has_csv_sequence = false;
     s_last_calibration_state = CALIBRATION_STATE_IDLE;
+    s_next_sensor_recovery_ms = now_ms;
     App_LogStartupInformation();
     return true;
 }
 
-void App_RunOnce(uint32_t now_ms)
+void App_SetUartWriter(AppUartWriter_t writer)
+{
+    s_uart_writer = (writer != NULL) ? writer : App_DefaultUartWriter;
+    CommunicationService_SetWriter(s_uart_writer);
+}
+
+void App_SensorRunOnce(uint32_t now_ms)
+{
+    if (!s_app_initialized)
+    {
+        return;
+    }
+    HealthService_RecordLoop(now_ms);
+    App_RunI2cScanStep(now_ms);
+    App_RunMotionPipeline(now_ms);
+    App_RunSensorRecovery(now_ms);
+}
+
+void App_CommunicationRunOnce(uint32_t now_ms)
+{
+    (void)now_ms;
+    if (s_app_initialized)
+    {
+        CommunicationService_RunRxOnce();
+    }
+}
+
+bool App_ProcessCommand(const ProtocolFrame_t *request)
+{
+    return s_app_initialized && CommunicationService_ProcessCommand(request);
+}
+
+void App_TelemetryRunOnce(uint32_t now_ms, const MotionFrame_t *frame)
+{
+    if (!s_app_initialized)
+    {
+        return;
+    }
+    if (CommunicationService_IsProtocolMode())
+    {
+        CommunicationService_RunTelemetry(now_ms, frame);
+        return;
+    }
+    if (SoftwareTimer_IsDue(&s_calibration_report_timer, now_ms))
+    {
+        App_ReportCalibration();
+    }
+    if (SoftwareTimer_IsDue(&s_attitude_report_timer, now_ms))
+    {
+        App_WriteTelemetry(frame);
+    }
+}
+
+void App_HealthRunOnce(uint32_t now_ms)
 {
     HealthSnapshot_t snapshot;
 
@@ -355,12 +469,6 @@ void App_RunOnce(uint32_t now_ms)
     {
         return;
     }
-
-    HealthService_RecordLoop(now_ms);
-    App_RunI2cScanStep(now_ms);
-    App_RunMotionPipeline(now_ms);
-    CommunicationService_RunOnce(now_ms);
-
     if (SoftwareTimer_IsDue(&s_heartbeat_timer, now_ms))
     {
         if (BspLed_Toggle() == BSP_LED_OK)
@@ -372,7 +480,6 @@ void App_RunOnce(uint32_t now_ms)
             (void)AppStatus_SetState(APP_STATE_DEGRADED);
         }
     }
-
     if (!CommunicationService_IsProtocolMode() &&
         SoftwareTimer_IsDue(&s_health_report_timer, now_ms) &&
         HealthService_GetSnapshot(&snapshot))
@@ -388,4 +495,20 @@ void App_RunOnce(uint32_t now_ms)
                                   AppStatus_ToString(snapshot.app_state),
                                   snapshot.log_failure_count));
     }
+}
+
+void App_RunOnce(uint32_t now_ms)
+{
+    MotionFrame_t frame;
+
+    if (!s_app_initialized)
+    {
+        return;
+    }
+
+    App_SensorRunOnce(now_ms);
+    App_CommunicationRunOnce(now_ms);
+    App_TelemetryRunOnce(
+        now_ms, MotionService_GetLatestFrame(&frame) ? &frame : NULL);
+    App_HealthRunOnce(now_ms);
 }

@@ -1,0 +1,24 @@
+{
+  "validation_date": "2026-08-05T21:03:32+08:00",
+  "port": "COM4",
+  "baud": 115200,
+  "results": {
+    "ping": "PASS",
+    "device_info": "PASS",
+    "status": "PASS",
+    "config": "PASS",
+    "latest_motion": "PASS",
+    "stream_state": "PASS",
+    "firmware": "0.5.0",
+    "app_state": 2,
+    "motion_state": 2,
+    "runtime_config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    }
+  }
+}

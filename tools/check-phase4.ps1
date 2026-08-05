@@ -42,8 +42,9 @@ try {
 
     $version = Get-Content -Raw -Encoding UTF8 `
         (Join-Path $ProjectRoot 'App\app_version.h')
-    Add-Check 'Version 0.4.1' ($version -match 'APP_VERSION_STRING\s+"0\.4\.1"') `
-        'firmware version'
+    Add-Check 'Version includes Phase 4' `
+        ($version -match 'APP_VERSION_STRING\s+"0\.(?:4\.[1-9]|[5-9]\.[0-9]+)"') `
+        'firmware version is 0.4.1 or later'
 
     $constants = Get-Content -Raw -Encoding UTF8 `
         (Join-Path $ProjectRoot 'Middleware\protocol_constants.h')
@@ -99,9 +100,13 @@ try {
          ($parserTest -match 'successful_frames')) 'CRC and length recovery'
 
     $uart = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'BSP\bsp_uart.c')
+    $uartIrq = Get-Content -Raw -Encoding UTF8 `
+        (Join-Path $ProjectRoot 'Src\stm32f1xx_it.c')
     Add-Check 'UART receive bounded' `
-        ($uart -match 'HAL_UART_Receive\(&huart1,\s*byte,\s*1U,\s*0U\)') `
-        'zero-timeout receive'
+        (($uart -match 'HAL_UART_Receive_IT\(&huart1,\s*&s_rx_byte,\s*1U\)') -and
+         ($uart -match 'BSP_UART_RX_CAPACITY') -and
+         ($uartIrq -match 'BspUart_IrqHandler\s*\(')) `
+        'interrupt receive with fixed ring buffer and USART1 IRQ'
 
     $app = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'App\app_main.c')
     Add-Check 'Binary mode isolated' `

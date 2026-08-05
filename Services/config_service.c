@@ -9,6 +9,8 @@
 
 static RuntimeConfig_t s_config;
 static bool s_initialized;
+static ConfigCriticalFunction_t s_enter_critical;
+static ConfigCriticalFunction_t s_exit_critical;
 
 static bool IsValid(const RuntimeConfig_t *config)
 {
@@ -39,13 +41,33 @@ bool ConfigService_Init(void)
     return true;
 }
 
+bool ConfigService_SetCriticalSection(ConfigCriticalFunction_t enter_function,
+                                      ConfigCriticalFunction_t exit_function)
+{
+    if ((enter_function == NULL) != (exit_function == NULL))
+    {
+        return false;
+    }
+    s_enter_critical = enter_function;
+    s_exit_critical = exit_function;
+    return true;
+}
+
 bool ConfigService_Get(RuntimeConfig_t *config)
 {
     if ((config == NULL) || !s_initialized)
     {
         return false;
     }
+    if (s_enter_critical != NULL)
+    {
+        s_enter_critical();
+    }
     *config = s_config;
+    if (s_exit_critical != NULL)
+    {
+        s_exit_critical();
+    }
     return true;
 }
 
@@ -63,6 +85,14 @@ bool ConfigService_Set(const RuntimeConfig_t *config)
     {
         return false;
     }
+    if (s_enter_critical != NULL)
+    {
+        s_enter_critical();
+    }
     s_config = *config;
+    if (s_exit_critical != NULL)
+    {
+        s_exit_critical();
+    }
     return true;
 }

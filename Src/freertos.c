@@ -25,6 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "app_rtos.h"
+#include "rtos_monitor.h"
 
 /* USER CODE END Includes */
 
@@ -74,6 +76,14 @@ void vApplicationStackOverflowHook(xTaskHandle xTask, signed char *pcTaskName)
    /* Run time stack overflow checking is performed if
    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2. This hook function is
    called if a stack overflow is detected. */
+   (void)xTask;
+   (void)pcTaskName;
+   RtosMonitor_RecordStackOverflow();
+   AppRtos_HandleFatalError();
+   taskDISABLE_INTERRUPTS();
+   for (;;)
+   {
+   }
 }
 /* USER CODE END 4 */
 
@@ -90,6 +100,12 @@ void vApplicationMallocFailedHook(void)
    FreeRTOSConfig.h, and the xPortGetFreeHeapSize() API function can be used
    to query the size of free heap space that remains (although it does not
    provide information on how the remaining heap might be fragmented). */
+   RtosMonitor_RecordMallocFailure();
+   AppRtos_HandleFatalError();
+   taskDISABLE_INTERRUPTS();
+   for (;;)
+   {
+   }
 }
 /* USER CODE END 5 */
 
@@ -100,7 +116,7 @@ void vApplicationMallocFailedHook(void)
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+  (void)AppRtos_Init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -124,7 +140,14 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
+  if (defaultTaskHandle == NULL)
+  {
+    AppRtos_HandleFatalError();
+    taskDISABLE_INTERRUPTS();
+    for (;;)
+    {
+    }
+  }
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -143,11 +166,9 @@ void MX_FREERTOS_Init(void) {
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+  (void)argument;
+  /* CubeMX仍生成defaultTask；四个静态应用任务建立后立即释放其动态TCB和栈。 */
+  osThreadExit();
   /* USER CODE END StartDefaultTask */
 }
 
@@ -155,4 +176,3 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /* USER CODE END Application */
-

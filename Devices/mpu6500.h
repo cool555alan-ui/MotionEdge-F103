@@ -7,7 +7,15 @@
 
 #define MPU6500_ADDRESS_AD0_LOW 0x68U
 #define MPU6500_ADDRESS_AD0_HIGH 0x69U
+#define MPU6050_WHO_AM_I_VALUE 0x68U
 #define MPU6500_WHO_AM_I_VALUE 0x70U
+
+typedef enum
+{
+    MPU6XXX_MODEL_UNKNOWN = 0,
+    MPU6XXX_MODEL_MPU6050,
+    MPU6XXX_MODEL_MPU6500
+} Mpu6xxxModel_t;
 
 typedef bool (*Mpu6500BusRead_t)(uint8_t address_7bit,
                                 uint8_t register_address,
@@ -52,6 +60,8 @@ typedef struct
     Mpu6500BusRead_t read;
     Mpu6500BusWrite_t write;
     uint8_t address;
+    uint8_t identity;
+    Mpu6xxxModel_t model;
     bool initialized;
     bool awake;
 } Mpu6500_t;
@@ -62,6 +72,10 @@ Mpu6500Status_t Mpu6500_Init(Mpu6500_t *device,
                              Mpu6500BusWrite_t write_function);
 Mpu6500Status_t Mpu6500_ReadWhoAmI(Mpu6500_t *device, uint8_t *identity);
 Mpu6500Status_t Mpu6500_VerifyIdentity(Mpu6500_t *device);
+/** 根据WHO_AM_I区分兼容的MPU6050和MPU6500。 */
+Mpu6xxxModel_t Mpu6500_DetectModel(uint8_t identity);
+/** 返回设备识别结果的稳定文本。 */
+const char *Mpu6500_ModelToString(Mpu6xxxModel_t model);
 Mpu6500Status_t Mpu6500_Wake(Mpu6500_t *device);
 Mpu6500Status_t Mpu6500_ReadRaw(Mpu6500_t *device, Mpu6500RawData_t *raw_data);
 

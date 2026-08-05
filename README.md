@@ -1,12 +1,13 @@
 # MotionEdge-F103
 
-MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6500 的嵌入式运动控制基础项目。
+MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入式运动控制基础项目。当前实板器件为MPU6500（WHO_AM_I=`0x70`）。
 
 - MCU：STM32F103C8T6
 - 传感器：MPU6500
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
+- 当前固件版本：`0.5.0`（Phase 5 实机验证通过）
 
 ## Phase 1: Firmware Foundation
 
@@ -69,11 +70,40 @@ Parser、统一命令响应、RAM 运行时配置、二进制 Motion/Health 遥�
 `python -m motionctl` 设备 CLI 和无硬件模拟器。协议模式启用后 USART1 只发送
 二进制帧，避免与普通日志和 CSV 混流。
 
-软件协议、模拟设备、主机测试和 STM32 GCC 交叉编译已完成；这不等于真实串口验证
-完成。真实 USART 收发、帧传输、命令响应和长时间通信仍需在面包板上验证。
+软件协议、模拟设备、主机测试和 STM32 GCC 交叉编译已完成。
+
+2026-08-05 实板二进制命令验证：PING、设备信息、状态、运行时配置读写、最新姿态查询、
+流控制全部 PASS；串口解析错误、CRC 错误、RX 溢出均为 0。二进制帧与文本日志/CSV 严格
+隔离，协议模式下未出现混流。
 
 详细格式和验证边界见[协议规范](docs/protocol-specification.md)和
 [第四阶段记录](docs/phase-04-device-protocol.md)。
+
+## Phase 5: FreeRTOS Scheduling Migration
+
+第五阶段使用CubeMX生成的FreeRTOS 10.3.1和CMSIS-RTOS2，将原裸机协作调度迁移为
+SensorTask、CommunicationTask、TelemetryTask和HealthTask。驱动、算法、协议和服务
+保持RTOS无关；任务、命令队列、互斥锁、事件标志及运动快照使用静态存储。
+
+2026-08-05 实板验收通过（41 PASS / 0 WARN / 0 FAIL），关键实测数据：
+
+- **任务频率**：SensorTask 100.003 Hz、CommunicationTask 500.012 Hz、
+  TelemetryTask 10.001 Hz、HealthTask 1.000 Hz
+- **600 秒独立稳定性**：6001 帧，100 ms 固定间隔，sequence 固定 +10，
+  丢帧/回退/解析错误均为 0；状态全程 RUNNING，DEGRADED/FAULT 0 次
+- **稳定段 Deadline miss**：0/0/0/0（校准期间 SensorTask 有少量 transient miss，
+  校准完成后清零）
+- **栈高水位**：最低剩余 284 B（TelemetryTask），所有任务栈余量充足
+- **堆最低剩余**：2,440 B；栈溢出/malloc 失败 0
+- **传感器掉线恢复**：断开→DEGRADED→重新识别→唤醒→校准→RUNNING，全自动
+- **二进制命令**：PING/INFO/STATUS/CONFIG/MOTION/STREAM 全部 PASS
+- **资源**：Debug Flash 45,620 B（69.6%），RAM 16,328 B（79.7%）
+
+验证证据见 `artifacts/rtos-validation/rtos-validation-report.md` 和
+`stability-soak-summary.json`。
+
+详细说明见[第五阶段迁移记录](docs/phase-05-freertos-migration.md)和
+[RTOS任务设计](docs/rtos-task-design.md)。
 
 ## 常用命令
 
@@ -85,4 +115,5 @@ powershell -ExecutionPolicy Bypass -File .\tools\check-phase2.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\test-python.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase3.ps1
 powershell -ExecutionPolicy Bypass -File .\tools\check-phase4.ps1
+powershell -ExecutionPolicy Bypass -File .\tools\check-phase5.ps1
 ```

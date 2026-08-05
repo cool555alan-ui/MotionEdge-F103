@@ -97,14 +97,15 @@ function Test-MainUserCodeDiff {
             continue
         }
         if ($line.StartsWith('+')) {
-            if (-not $currentAllowed[$newLine]) {
+            # 仅空白行变化不改变CubeMX生成语义，仍严格拦截任何非空代码。
+            if (($line -ne '+') -and -not $currentAllowed[$newLine]) {
                 return $false
             }
             ++$newLine
             continue
         }
         if ($line.StartsWith('-')) {
-            if (-not $baseAllowed[$oldLine]) {
+            if (($line -ne '-') -and -not $baseAllowed[$oldLine]) {
                 return $false
             }
             ++$oldLine
@@ -143,8 +144,11 @@ try {
     $mainText = Get-Content -LiteralPath (Join-Path $ProjectRoot $mainRelativePath) -Raw -Encoding UTF8
     Add-Check 'App_Init 接入' ($mainText -match '\bApp_Init\s*\(\s*HAL_GetTick\s*\(\s*\)\s*\)') `
         $mainRelativePath
-    Add-Check 'App_RunOnce 接入' `
-        ($mainText -match '\bApp_RunOnce\s*\(\s*HAL_GetTick\s*\(\s*\)\s*\)') $mainRelativePath
+    $bareMetalLoop = $mainText -match '\bApp_RunOnce\s*\(\s*HAL_GetTick\s*\(\s*\)\s*\)'
+    $rtosLoop = ($mainText -match '\bosKernelStart\s*\(') -and
+        -not ($mainText -match '\bApp_RunOnce\s*\(\s*HAL_GetTick\s*\(\s*\)\s*\)')
+    Add-Check '应用调度入口' ($bareMetalLoop -or $rtosLoop) `
+        $(if ($rtosLoop) { 'RTOS scheduler owns main path' } else { $mainRelativePath })
 
     $userFiles = Get-TextFiles @('App', 'BSP', 'Common', 'Middleware', 'Services')
     $delayHits = @($userFiles | Select-String -Pattern '\bHAL_Delay\s*\(')
@@ -205,8 +209,12 @@ try {
 
     $changedFiles = @(& git -C $ProjectRoot diff --name-only HEAD --)
     $forbiddenGeneratedChanges = @($changedFiles | Where-Object {
-            $_ -match '^(?:Drivers/|cmake/stm32cubemx/|startup_.*\.s$|.*\.ld$|.*\.ioc2?$)' -or
-            ($_ -match '^(?:Inc|Src)/' -and $_ -ne 'Src/main.c')
+            if ($_ -in @('Src/freertos.c', 'Src/stm32f1xx_it.c',
+                    'Inc/stm32f1xx_it.h')) {
+                return -not (Test-MainUserCodeDiff ($_ -replace '/', '\'))
+            }
+            return ($_ -match '^(?:Drivers/|cmake/stm32cubemx/|startup_.*\.s$|.*\.ld$|.*\.ioc2?$)' -or
+                ($_ -match '^(?:Inc|Src)/' -and $_ -ne 'Src/main.c'))
         })
     Add-Check 'CubeMX 生成文件保护' ($forbiddenGeneratedChanges.Count -eq 0) `
         $(if ($forbiddenGeneratedChanges) {

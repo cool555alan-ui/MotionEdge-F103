@@ -39,6 +39,8 @@ Mpu6500Status_t Mpu6500_Init(Mpu6500_t *device,
     device->read = read_function;
     device->write = write_function;
     device->address = address_7bit;
+    device->identity = 0U;
+    device->model = MPU6XXX_MODEL_UNKNOWN;
     device->initialized = true;
     device->awake = false;
     return MPU6500_OK;
@@ -59,7 +61,36 @@ Mpu6500Status_t Mpu6500_ReadWhoAmI(Mpu6500_t *device, uint8_t *identity)
         return MPU6500_ERROR_BUS;
     }
 
+    device->identity = *identity;
+    device->model = Mpu6500_DetectModel(*identity);
+
     return MPU6500_OK;
+}
+
+Mpu6xxxModel_t Mpu6500_DetectModel(uint8_t identity)
+{
+    if (identity == MPU6050_WHO_AM_I_VALUE)
+    {
+        return MPU6XXX_MODEL_MPU6050;
+    }
+    if (identity == MPU6500_WHO_AM_I_VALUE)
+    {
+        return MPU6XXX_MODEL_MPU6500;
+    }
+    return MPU6XXX_MODEL_UNKNOWN;
+}
+
+const char *Mpu6500_ModelToString(Mpu6xxxModel_t model)
+{
+    switch (model)
+    {
+        case MPU6XXX_MODEL_MPU6050:
+            return "MPU6050";
+        case MPU6XXX_MODEL_MPU6500:
+            return "MPU6500";
+        default:
+            return "UNKNOWN";
+    }
 }
 
 Mpu6500Status_t Mpu6500_VerifyIdentity(Mpu6500_t *device)
@@ -71,8 +102,8 @@ Mpu6500Status_t Mpu6500_VerifyIdentity(Mpu6500_t *device)
     {
         return status;
     }
-    /* MPU6500的WHO_AM_I固定为0x70，与AD0选择的I²C地址无关。 */
-    if (identity != MPU6500_WHO_AM_I_VALUE)
+    /* 两种器件的寄存器数据链兼容，但必须保存真实身份供日志和诊断使用。 */
+    if (Mpu6500_DetectModel(identity) == MPU6XXX_MODEL_UNKNOWN)
     {
         return MPU6500_ERROR_IDENTITY;
     }

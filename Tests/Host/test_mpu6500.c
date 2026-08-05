@@ -85,16 +85,28 @@ void TestMpu6500_Run(TestContext_t *context)
     s_read_success = true;
     TEST_EXPECT(context, Mpu6500_ReadWhoAmI(&device, &identity) == MPU6500_OK);
     TEST_EXPECT(context, identity == MPU6500_WHO_AM_I_VALUE);
+    TEST_EXPECT(context, device.model == MPU6XXX_MODEL_MPU6500);
     TEST_EXPECT(context, Mpu6500_VerifyIdentity(&device) == MPU6500_OK);
     s_identity = 0x69U;
     TEST_EXPECT(context,
                 Mpu6500_VerifyIdentity(&device) == MPU6500_ERROR_IDENTITY);
     s_identity = 0x68U;
-    TEST_EXPECT(context,
-                Mpu6500_VerifyIdentity(&device) == MPU6500_ERROR_IDENTITY);
+    TEST_EXPECT(context, Mpu6500_VerifyIdentity(&device) == MPU6500_OK);
+    TEST_EXPECT(context, device.model == MPU6XXX_MODEL_MPU6050);
     s_identity = 0x00U;
     TEST_EXPECT(context, Mpu6500_VerifyIdentity(&device) == MPU6500_ERROR_IDENTITY);
     s_identity = MPU6500_WHO_AM_I_VALUE;
+    TEST_EXPECT(context,
+                Mpu6500_DetectModel(MPU6050_WHO_AM_I_VALUE) ==
+                    MPU6XXX_MODEL_MPU6050);
+    TEST_EXPECT(context,
+                Mpu6500_DetectModel(MPU6500_WHO_AM_I_VALUE) ==
+                    MPU6XXX_MODEL_MPU6500);
+    TEST_EXPECT(context,
+                Mpu6500_DetectModel(0x00U) == MPU6XXX_MODEL_UNKNOWN);
+    TEST_EXPECT(context,
+                strcmp(Mpu6500_ModelToString(MPU6XXX_MODEL_MPU6500), "MPU6500") ==
+                    0);
 
     TEST_EXPECT(context,
                 Mpu6500_ReadRaw(&device, &raw_data) ==

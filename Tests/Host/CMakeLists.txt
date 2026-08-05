@@ -19,6 +19,7 @@ add_executable(firmware_host_tests
     test_motion_service.c
     test_csv_telemetry.c
     test_protocol.c
+    test_rtos_monitor.c
     ../../Algorithms/low_pass_filter.c
     ../../Algorithms/attitude_estimator.c
     ../../Common/software_timer.c
@@ -38,6 +39,7 @@ add_executable(firmware_host_tests
     ../../Services/config_service.c
     ../../Services/command_service.c
     ../../Services/telemetry_service.c
+    ../../App/RTOS/rtos_monitor.c
 )
 
 target_include_directories(firmware_host_tests PRIVATE
@@ -48,6 +50,7 @@ target_include_directories(firmware_host_tests PRIVATE
     ../../Devices
     ../../Middleware
     ../../Services
+    ../../App/RTOS
 )
 
 target_compile_definitions(firmware_host_tests PRIVATE

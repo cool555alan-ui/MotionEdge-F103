@@ -9,6 +9,21 @@ static LogWriteFunction_t s_write_function = NULL;
 static LogLevel_t s_minimum_level = LOG_LEVEL_NONE;
 static char s_log_buffer[APP_LOG_BUFFER_SIZE];
 static char s_message_buffer[APP_LOG_BUFFER_SIZE];
+static LogLockFunction_t s_lock_function;
+static LogUnlockFunction_t s_unlock_function;
+
+static bool Logger_Lock(void)
+{
+    return (s_lock_function == NULL) || s_lock_function();
+}
+
+static void Logger_Unlock(void)
+{
+    if (s_unlock_function != NULL)
+    {
+        s_unlock_function();
+    }
+}
 
 static bool Logger_IsThresholdValid(LogLevel_t level)
 {
@@ -37,18 +52,33 @@ bool Logger_Init(LogWriteFunction_t write_function, LogLevel_t minimum_level)
     return true;
 }
 
+bool Logger_SetLock(LogLockFunction_t lock_function,
+                    LogUnlockFunction_t unlock_function)
+{
+    if ((lock_function == NULL) != (unlock_function == NULL))
+    {
+        return false;
+    }
+    s_lock_function = lock_function;
+    s_unlock_function = unlock_function;
+    return true;
+}
+
 bool Logger_SetLevel(LogLevel_t minimum_level)
 {
-    if (!Logger_IsThresholdValid(minimum_level))
+    if (!Logger_IsThresholdValid(minimum_level) || !Logger_Lock())
     {
         return false;
     }
 
     s_minimum_level = minimum_level;
+    Logger_Unlock();
     return true;
 }
 
-bool Logger_Write(LogLevel_t level, const char *module, const char *message)
+static bool Logger_WriteUnlocked(LogLevel_t level,
+                                 const char *module,
+                                 const char *message)
 {
     const char *effective_module = module;
     int written;
@@ -81,18 +111,34 @@ bool Logger_Write(LogLevel_t level, const char *module, const char *message)
     return s_write_function((const uint8_t *)s_log_buffer, (size_t)written);
 }
 
+bool Logger_Write(LogLevel_t level, const char *module, const char *message)
+{
+    bool result;
+
+    if (!Logger_Lock())
+    {
+        return false;
+    }
+    result = Logger_WriteUnlocked(level, module, message);
+    Logger_Unlock();
+    return result;
+}
+
 bool Logger_WriteFormatted(LogLevel_t level, const char *module, const char *format, ...)
 {
     va_list arguments;
     int written;
 
+    bool result;
+
     if ((s_write_function == NULL) || !Logger_IsMessageLevelValid(level) ||
-        (format == NULL))
+        (format == NULL) || !Logger_Lock())
     {
         return false;
     }
     if (Logger_IsFiltered(level))
     {
+        Logger_Unlock();
         return true;
     }
 
@@ -101,10 +147,13 @@ bool Logger_WriteFormatted(LogLevel_t level, const char *module, const char *for
     va_end(arguments);
     if ((written < 0) || ((size_t)written >= sizeof(s_message_buffer)))
     {
+        Logger_Unlock();
         return false;
     }
 
-    return Logger_Write(level, module, s_message_buffer);
+    result = Logger_WriteUnlocked(level, module, s_message_buffer);
+    Logger_Unlock();
+    return result;
 }
 
 const char *Logger_LevelToString(LogLevel_t level)

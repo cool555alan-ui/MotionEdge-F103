@@ -23,8 +23,13 @@ typedef struct
     bool telemetry_enabled;
 } RuntimeConfig_t;
 
+typedef void (*ConfigCriticalFunction_t)(void);
+
 /** 使用编译期默认值初始化RAM配置。 */
 bool ConfigService_Init(void);
+/** 注入仅保护配置结构复制的短临界区；NULL/NULL用于裸机路径。 */
+bool ConfigService_SetCriticalSection(ConfigCriticalFunction_t enter_function,
+                                      ConfigCriticalFunction_t exit_function);
 bool ConfigService_Get(RuntimeConfig_t *config);
 /** 完整校验后原子更新配置；任一字段非法时不生效。 */
 bool ConfigService_Set(const RuntimeConfig_t *config);

@@ -15,8 +15,13 @@ typedef enum
 } LogLevel_t;
 
 typedef bool (*LogWriteFunction_t)(const uint8_t *data, size_t length);
+typedef bool (*LogLockFunction_t)(void);
+typedef void (*LogUnlockFunction_t)(void);
 
 bool Logger_Init(LogWriteFunction_t write_function, LogLevel_t minimum_level);
+/** 注入短时日志格式化锁；NULL/NULL用于裸机无锁路径。 */
+bool Logger_SetLock(LogLockFunction_t lock_function,
+                    LogUnlockFunction_t unlock_function);
 bool Logger_SetLevel(LogLevel_t minimum_level);
 bool Logger_Write(LogLevel_t level, const char *module, const char *message);
 bool Logger_WriteFormatted(LogLevel_t level, const char *module, const char *format, ...);

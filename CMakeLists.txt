@@ -37,6 +37,14 @@ add_executable(${CMAKE_PROJECT_NAME})
 # Add STM32CubeMX generated sources
 add_subdirectory(cmake/stm32cubemx)
 
+# Debug 保留完整调试信息，同时使用 GCC 为调试设计的轻量优化，
+# 避免 -O0 将 HAL、FreeRTOS 和应用代码异常膨胀到接近 Flash 上限。
+foreach(debug_target ${CMAKE_PROJECT_NAME} STM32_Drivers FreeRTOS)
+    target_compile_options(${debug_target} PRIVATE
+        $<$<CONFIG:Debug>:-Og>
+    )
+endforeach()
+
 # Link directories setup
 target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined library search paths

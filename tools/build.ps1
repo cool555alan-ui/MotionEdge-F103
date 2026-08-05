@@ -81,7 +81,11 @@ try {
         exit $LASTEXITCODE
     }
 
-    $elf = Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'build') -Recurse -File `
+    $selectedBuildDirectory = Join-Path $ProjectRoot ("build\{0}" -f $selectedBuild)
+    if (-not (Test-Path -LiteralPath $selectedBuildDirectory -PathType Container)) {
+        $selectedBuildDirectory = Join-Path $ProjectRoot 'build'
+    }
+    $elf = Get-ChildItem -LiteralPath $selectedBuildDirectory -Recurse -File `
             -Filter '*.elf' -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending |
         Select-Object -First 1
