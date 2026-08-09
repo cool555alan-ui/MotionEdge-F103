@@ -1,0 +1,503 @@
+{
+  "metadata": {
+    "experiment": "static-pitch",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-06T13:21:49+0800",
+    "angles": [
+      -30.0,
+      -20.0,
+      -10.0,
+      0.0,
+      10.0,
+      20.0,
+      30.0
+    ],
+    "repeats": 3,
+    "settle_s": 3.0,
+    "capture_s": 10.0,
+    "orders": [
+      [
+        0.0,
+        10.0,
+        -10.0,
+        20.0,
+        -20.0,
+        30.0,
+        -30.0
+      ],
+      [
+        -30.0,
+        30.0,
+        -20.0,
+        20.0,
+        -10.0,
+        10.0,
+        0.0
+      ],
+      [
+        30.0,
+        0.0,
+        -10.0,
+        -30.0,
+        20.0,
+        10.0,
+        -20.0
+      ]
+    ]
+  },
+  "segments": [
+    {
+      "repeat": 1,
+      "target_deg": 0.0,
+      "reference_deg": 0.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 0.32799999999999996,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 100
+      },
+      "full_window_mean": 0.2826315789473684,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": 10.0,
+      "reference_deg": 10.0,
+      "captured": 100,
+      "used": 25,
+      "mean": 10.323599999999999,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      },
+      "full_window_mean": 10.172666666666668,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": -10.0,
+      "reference_deg": -10.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -9.733600000000001,
+      "parser": {
+        "frames": 116,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 111
+      },
+      "full_window_mean": -10.096184210526316,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": 20.0,
+      "reference_deg": 20.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 20.1552,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 285
+      },
+      "full_window_mean": 20.367236842105264,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": -20.0,
+      "reference_deg": -20.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -19.034000000000002,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      },
+      "full_window_mean": -20.49276315789474,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": 30.0,
+      "reference_deg": 30.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 30.223200000000002,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 468
+      },
+      "full_window_mean": 29.880000000000003,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 1,
+      "target_deg": -30.0,
+      "reference_deg": -30.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -31.14,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 108
+      },
+      "full_window_mean": -29.678421052631577,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": -30.0,
+      "reference_deg": -30.0,
+      "captured": 100,
+      "used": 25,
+      "mean": -30.252,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 106
+      },
+      "full_window_mean": -29.143733333333337,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": 30.0,
+      "reference_deg": 30.0,
+      "captured": 100,
+      "used": 25,
+      "mean": 29.6092,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 285
+      },
+      "full_window_mean": 28.906933333333335,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": -20.0,
+      "reference_deg": -20.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -20.8312,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      },
+      "full_window_mean": -20.844736842105263,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": 20.0,
+      "reference_deg": 20.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 20.083199999999998,
+      "parser": {
+        "frames": 130,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      },
+      "full_window_mean": 20.166184210526318,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": -10.0,
+      "reference_deg": -10.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -10.992799999999999,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 114
+      },
+      "full_window_mean": -13.71407894736842,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": 10.0,
+      "reference_deg": 10.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 10.1044,
+      "parser": {
+        "frames": 116,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 111
+      },
+      "full_window_mean": 10.41828947368421,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 2,
+      "target_deg": 0.0,
+      "reference_deg": 0.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 0.1924,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 102
+      },
+      "full_window_mean": 0.19565789473684211,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": 30.0,
+      "reference_deg": 30.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 30.0136,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 283
+      },
+      "full_window_mean": 30.221973684210525,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": 0.0,
+      "reference_deg": 0.0,
+      "captured": 100,
+      "used": 25,
+      "mean": 0.11199999999999999,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 98
+      },
+      "full_window_mean": 0.41906666666666664,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": -10.0,
+      "reference_deg": -10.0,
+      "captured": 101,
+      "used": 25,
+      "mean": -10.0556,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 107
+      },
+      "full_window_mean": -9.994868421052631,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": -30.0,
+      "reference_deg": -30.0,
+      "captured": 100,
+      "used": 25,
+      "mean": -22.5848,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 287
+      },
+      "full_window_mean": -17.8364,
+      "analysis_window": "final_2.5_seconds",
+      "status": "EXCLUDED_OBJECTIVE_THRESHOLD",
+      "exclusion_reason": "Final-window mean absolute error exceeded 5 deg; target was not reached."
+    },
+    {
+      "repeat": 3,
+      "target_deg": 20.0,
+      "reference_deg": 20.0,
+      "captured": 101,
+      "used": 25,
+      "mean": 20.180799999999998,
+      "parser": {
+        "frames": 115,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 115
+      },
+      "full_window_mean": 20.346842105263157,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": 10.0,
+      "reference_deg": 10.0,
+      "captured": 100,
+      "used": 25,
+      "mean": 10.506400000000001,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 287
+      },
+      "full_window_mean": 12.388666666666666,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    },
+    {
+      "repeat": 3,
+      "target_deg": -20.0,
+      "reference_deg": -20.0,
+      "captured": 100,
+      "used": 25,
+      "mean": -20.0576,
+      "parser": {
+        "frames": 114,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 468
+      },
+      "full_window_mean": -19.918266666666664,
+      "analysis_window": "final_2.5_seconds",
+      "status": "INCLUDED"
+    }
+  ],
+  "metrics": {
+    "count": 500,
+    "mae": 0.37539999999999996,
+    "rmse": 0.5153833524668797,
+    "max_abs_error": 1.5600000000000005,
+    "bias": -0.013239999999999995,
+    "error": {
+      "count": 500,
+      "mean": -0.013239999999999995,
+      "stddev": 0.5157292465154781,
+      "min": -1.5600000000000005,
+      "max": 1.1799999999999997,
+      "peak_to_peak": 2.74,
+      "median": 0.10999999999999943,
+      "mad": 0.1999999999999993,
+      "p2_5": -1.1852500000000006,
+      "p97_5": 1.0652499999999994
+    },
+    "measurement": {
+      "count": 500,
+      "mean": 1.48676,
+      "stddev": 19.491778357797397,
+      "min": -31.28,
+      "max": 30.29,
+      "peak_to_peak": 61.57,
+      "median": 0.225,
+      "mad": 19.604999999999997,
+      "p2_5": -31.14525,
+      "p97_5": 30.23525
+    },
+    "fit": {
+      "slope": 1.0082550234741785,
+      "intercept": -0.025622535211267783,
+      "r_squared": 0.9993669230808202
+    },
+    "repeatability_stddev": 0.4081040355218363,
+    "hysteresis_max": 1.7971999999999966,
+    "return_to_zero_error": 0.21080000000000002,
+    "cross_axis_deg_per_10deg": -0.904545238095238,
+    "cross_axis_peak_to_peak": 6.439
+  },
+  "analysis_policy": {
+    "window": "final 2.5 seconds (25 telemetry frames) of every segment",
+    "reason": "Shortened 10 s captures showed complementary-filter settling transients",
+    "exclusion_threshold": "absolute final-window mean error > 5 deg"
+  },
+  "data_completeness": {
+    "expected_segments": 21,
+    "included_segments": 20,
+    "excluded_segments": 1,
+    "complete": false,
+    "status": "PARTIAL",
+    "policy": "Raw segment files retained; objectively invalid placement segments excluded from statistics."
+  },
+  "exclusions": [
+    {
+      "repeat": 3,
+      "target_deg": -30.0,
+      "final_window_mean": -22.5848,
+      "criterion": "abs(mean-reference)>5 deg"
+    }
+  ]
+}

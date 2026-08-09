@@ -1,0 +1,139 @@
+{
+  "metadata": {
+    "experiment": "noise",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-06T13:34:01+0800",
+    "duration_s": 600.0
+  },
+  "metrics": {
+    "roll": {
+      "count": 6001,
+      "mean": 0.04765705715714048,
+      "stddev": 0.02826793891681704,
+      "min": -0.02,
+      "max": 0.2,
+      "peak_to_peak": 0.22,
+      "median": 0.05,
+      "mad": 0.020000000000000004,
+      "p2_5": 0.0,
+      "p97_5": 0.1,
+      "p95_absolute_deviation": 0.04765705715714048,
+      "max_instantaneous_jump": 0.04999999999999999
+    },
+    "pitch": {
+      "count": 6001,
+      "mean": -0.012419596733877688,
+      "stddev": 0.08462827291103144,
+      "min": -1.11,
+      "max": 0.06,
+      "peak_to_peak": 1.1700000000000002,
+      "median": 0.0,
+      "mad": 0.01,
+      "p2_5": -0.04,
+      "p97_5": 0.03,
+      "p95_absolute_deviation": 0.03758040326612232,
+      "max_instantaneous_jump": 0.81
+    },
+    "accel_magnitude_mg": {
+      "count": 6001,
+      "mean": 1001.9357541688943,
+      "stddev": 11.038303406560507,
+      "min": 993.000503524545,
+      "max": 1138.880590755677,
+      "peak_to_peak": 145.88008723113205,
+      "median": 1001.0009990005005,
+      "mad": 0.9999990010005604,
+      "p2_5": 998.0025050068763,
+      "p97_5": 1004.0004980078446
+    },
+    "gyro_mdps": {
+      "x": {
+        "count": 6001,
+        "mean": -22.893851024829196,
+        "stddev": 143.49391705057442,
+        "min": -1803.0,
+        "max": 1156.0,
+        "peak_to_peak": 2959.0,
+        "median": -13.0,
+        "mad": 29.0,
+        "p2_5": -100.0,
+        "p97_5": 70.0
+      },
+      "y": {
+        "count": 6001,
+        "mean": 5.343276120646559,
+        "stddev": 166.69633611810002,
+        "min": -484.0,
+        "max": 2106.0,
+        "peak_to_peak": 2590.0,
+        "median": -7.0,
+        "mad": 32.0,
+        "p2_5": -102.0,
+        "p97_5": 91.0
+      },
+      "z": {
+        "count": 6001,
+        "mean": 6.58723546075654,
+        "stddev": 51.553364879246395,
+        "min": -440.0,
+        "max": 166.0,
+        "peak_to_peak": 606.0,
+        "median": 10.0,
+        "mad": 29.0,
+        "p2_5": -79.0,
+        "p97_5": 89.0
+      }
+    },
+    "sequence": {
+      "count": 6001,
+      "duplicates": 0,
+      "regressions": 0,
+      "gaps": 0,
+      "continuous": true
+    },
+    "count": 6001
+  },
+  "health_first": {
+    "uptime_ms": 2998,
+    "app_state_raw": 2,
+    "sensor_state_raw": 1,
+    "loop_count": 301,
+    "i2c_errors": 0,
+    "invalid_samples": 0,
+    "protocol_rx_frames": 5,
+    "protocol_crc_errors": 0,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 8881949093700
+  },
+  "health_last": {
+    "uptime_ms": 601998,
+    "app_state_raw": 2,
+    "sensor_state_raw": 2,
+    "loop_count": 60201,
+    "i2c_errors": 0,
+    "invalid_samples": 0,
+    "protocol_rx_frames": 5,
+    "protocol_crc_errors": 0,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 9480861479700
+  },
+  "parser": {
+    "frames": 6605,
+    "crc_errors": 0,
+    "length_errors": 0,
+    "version_errors": 0,
+    "discarded_bytes": 158
+  }
+}

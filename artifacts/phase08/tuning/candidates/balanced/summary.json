@@ -1,0 +1,109 @@
+{
+  "metadata": {
+    "experiment": "tuning-candidate",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 150,
+      "gyro_weight_milli": 970,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-09T12:09:42+0800",
+    "name": "balanced",
+    "alpha": 0.15,
+    "gyro_weight": 0.97,
+    "static_duration_s": 120.0,
+    "dynamic_level": "B_MANUAL",
+    "offline_replay": "NOT_PERFORMED_10HZ_FILTERED_TELEMETRY_INSUFFICIENT"
+  },
+  "confirmed_config": {
+    "sensor_ms": 10,
+    "telemetry_ms": 100,
+    "alpha_milli": 150,
+    "gyro_weight_milli": 970,
+    "log_level": 1,
+    "telemetry_enabled": false
+  },
+  "metrics": {
+    "name": "balanced",
+    "alpha": 0.15,
+    "gyro_weight": 0.97,
+    "static_mae": 0.24389999999999823,
+    "noise_stddev": 0.01822989008714834,
+    "peak_to_peak": 0.11999999999999988,
+    "dynamic_lag": 3.1,
+    "overshoot": 34.336,
+    "drift": 0.007307886799824335,
+    "cross_axis": 0.4506333333333334
+  },
+  "frames": {
+    "static": 1201,
+    "plus30": 100,
+    "minus30": 101,
+    "dynamic": 120
+  },
+  "recovery": {
+    "final_2s_roll_mean_deg": 1.6895,
+    "status": "PASS"
+  },
+  "parsers": {
+    "static": {
+      "frames": 1325,
+      "crc_errors": 0,
+      "length_errors": 0,
+      "version_errors": 0,
+      "discarded_bytes": 100
+    },
+    "plus30": {
+      "frames": 114,
+      "crc_errors": 0,
+      "length_errors": 0,
+      "version_errors": 0,
+      "discarded_bytes": 109
+    },
+    "minus30": {
+      "frames": 115,
+      "crc_errors": 0,
+      "length_errors": 0,
+      "version_errors": 0,
+      "discarded_bytes": 285
+    },
+    "dynamic": {
+      "frames": 136,
+      "crc_errors": 0,
+      "length_errors": 0,
+      "version_errors": 0,
+      "discarded_bytes": 1243
+    }
+  },
+  "health_first": {
+    "uptime_ms": 2108498,
+    "app_state_raw": 2,
+    "sensor_state_raw": 2,
+    "loop_count": 210851,
+    "i2c_errors": 0,
+    "invalid_samples": 74,
+    "protocol_rx_frames": 272,
+    "protocol_crc_errors": 3,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 2267634923000
+  },
+  "health_last": {
+    "uptime_ms": 2227498,
+    "app_state_raw": 2,
+    "sensor_state_raw": 2,
+    "loop_count": 222751,
+    "i2c_errors": 0,
+    "invalid_samples": 74,
+    "protocol_rx_frames": 272,
+    "protocol_crc_errors": 3,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 2386618479600
+  }
+}

@@ -34,6 +34,17 @@ cmake-build-*/
 /artifacts/phase07/node-red-flows-backup-*.json
 /artifacts/phase07/final-validation/mqtt-capture.jsonl
 /artifacts/phase07/final-validation/motion-check-mqtt.jsonl
+/artifacts/phase08/**/samples.csv
+/artifacts/phase08/**/*-raw.csv
+/artifacts/phase08/**/serial-raw.*
+/artifacts/phase08/**/static-used.csv
+/artifacts/phase08/**/coordinate-samples.csv
+/artifacts/phase08/**/*-samples.csv
+/artifacts/phase08/**/*transcript*.txt
+/artifacts/phase08/**/*terminal*.txt
+/artifacts/phase08/smoke-*/
+/artifacts/phase08/tuning/candidates/*invalid*/
+/artifacts/phase08/tuning/candidates-invalid*/
 /artifacts/phase07/final-validation/gateway.log
 /artifacts/phase07/final-validation/broker.log
 /artifacts/phase07/final-validation/node-red.log

@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "experiment": "coordinate",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-06T12:50:05+0800"
+  },
+  "baseline": {
+    "roll": -0.5489999999999999,
+    "pitch": 0.156
+  },
+  "right_raised": {
+    "roll": 35.39764705882353,
+    "pitch": -1.970392156862745
+  },
+  "front_raised": {
+    "roll": -3.347,
+    "pitch": -63.095
+  },
+  "right_raised_delta": {
+    "roll": 35.94664705882353,
+    "pitch": -2.126392156862745
+  },
+  "front_raised_delta": {
+    "roll": -2.798,
+    "pitch": -63.251
+  },
+  "observed_roll_sign": "positive",
+  "observed_pitch_sign": "negative"
+}

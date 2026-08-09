@@ -1,0 +1,76 @@
+{
+  "metadata": {
+    "experiment": "drift",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-06T14:06:03+0800",
+    "duration_s": 1800.0
+  },
+  "metrics": {
+    "count": 18003,
+    "warmup_samples": 600,
+    "sequence": {
+      "count": 18003,
+      "duplicates": 0,
+      "regressions": 0,
+      "gaps": 0,
+      "continuous": true
+    },
+    "roll": {
+      "initial_60s_mean": 0.40058333333333335,
+      "final_60s_mean": 0.39071666666666666,
+      "total_drift": -0.00986666666666669,
+      "max_deviation": 0.10058333333333336,
+      "slope_deg_per_min": -0.000820948488333434
+    },
+    "pitch": {
+      "initial_60s_mean": 0.36433333333333334,
+      "final_60s_mean": 0.33365,
+      "total_drift": -0.03068333333333334,
+      "max_deviation": 0.08433333333333332,
+      "slope_deg_per_min": -0.0007507029525550235
+    }
+  },
+  "health_first": {
+    "uptime_ms": 724498,
+    "app_state_raw": 2,
+    "sensor_state_raw": 2,
+    "loop_count": 72451,
+    "i2c_errors": 0,
+    "invalid_samples": 0,
+    "protocol_rx_frames": 18,
+    "protocol_crc_errors": 0,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 9603339241700
+  },
+  "health_last": {
+    "uptime_ms": 2523498,
+    "app_state_raw": 2,
+    "sensor_state_raw": 2,
+    "loop_count": 252351,
+    "i2c_errors": 0,
+    "invalid_samples": 0,
+    "protocol_rx_frames": 18,
+    "protocol_crc_errors": 0,
+    "uart_rx_overflows": 0,
+    "host_monotonic_ns": 11402064781700
+  },
+  "parser": {
+    "frames": 19808,
+    "crc_errors": 0,
+    "length_errors": 0,
+    "version_errors": 0,
+    "discarded_bytes": 91
+  }
+}

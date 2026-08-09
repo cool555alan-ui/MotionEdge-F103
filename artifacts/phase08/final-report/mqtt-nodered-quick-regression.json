@@ -1,0 +1,33 @@
+﻿{
+    "tested_at":  "2026-08-09T12:13:15.6615736+08:00",
+    "scope":  "quick live-link regression; Phase 7 600 s evidence remains authoritative",
+    "motion_received_delta":  52,
+    "node_red_metrics":  {
+                             "motion_received":  52,
+                             "health_received":  5,
+                             "duplicate_received":  0,
+                             "invalid_json":  0,
+                             "schema_error":  0,
+                             "sequence_gap":  0,
+                             "command_sent":  0,
+                             "command_success":  0,
+                             "command_timeout":  0,
+                             "last_sequence":  267919,
+                             "last_motion_unix_ms":  1786248795234,
+                             "local_receive_latency_ms":  {
+                                                              "count":  52,
+                                                              "p50":  1,
+                                                              "p95":  2,
+                                                              "max":  2
+                                                          },
+                             "note":  "?????Broker????,??????????"
+                         },
+    "checks":  {
+                   "motion_frames":  "PASS",
+                   "invalid_json":  "PASS",
+                   "schema_error":  "PASS",
+                   "sequence_duplicate":  "PASS",
+                   "sequence_regression":  "PASS",
+                   "sequence_gap":  "PASS"
+               }
+}

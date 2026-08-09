@@ -1,0 +1,94 @@
+[
+  {
+    "name": "current",
+    "alpha": 0.2,
+    "gyro_weight": 0.98,
+    "static_mae": 0.0741999999999976,
+    "noise_stddev": 0.016732793476787917,
+    "peak_to_peak": 0.13,
+    "dynamic_lag": 3.6,
+    "overshoot": 0.25800000000000267,
+    "drift": 0.006501337848151284,
+    "cross_axis": 0.6774333333333334,
+    "score_components": {
+      "static_mae": 0.0,
+      "noise_stddev": 0.0,
+      "peak_to_peak": 0.0007361963190184137,
+      "dynamic_lag": 0.025,
+      "overshoot": 0.0006011183597390556,
+      "drift": 0.0,
+      "cross_axis": 0.058177605023172374
+    },
+    "total_score": 0.08451491970192984,
+    "rank": 1
+  },
+  {
+    "name": "fast_response",
+    "alpha": 0.4,
+    "gyro_weight": 0.95,
+    "static_mae": 0.1734000000000009,
+    "noise_stddev": 0.025500221764122467,
+    "peak_to_peak": 0.49,
+    "dynamic_lag": 5.9,
+    "overshoot": 0.0,
+    "drift": 0.011277540485535498,
+    "cross_axis": 0.1585666666666666,
+    "score_components": {
+      "static_mae": 0.14614024749558474,
+      "noise_stddev": 0.016662917777836243,
+      "peak_to_peak": 0.02723926380368099,
+      "dynamic_lag": 0.14000000000000004,
+      "overshoot": 0.0,
+      "drift": 0.008034287677927935,
+      "cross_axis": 0.0
+    },
+    "total_score": 0.3380767167550299,
+    "rank": 2
+  },
+  {
+    "name": "balanced",
+    "alpha": 0.15,
+    "gyro_weight": 0.97,
+    "static_mae": 0.24389999999999823,
+    "noise_stddev": 0.01822989008714834,
+    "peak_to_peak": 0.11999999999999988,
+    "dynamic_lag": 3.1,
+    "overshoot": 34.336,
+    "drift": 0.007307886799824335,
+    "cross_axis": 0.4506333333333334,
+    "score_components": {
+      "static_mae": 0.25,
+      "noise_stddev": 0.0028453038800385867,
+      "peak_to_peak": 0.0,
+      "dynamic_lag": 0.0,
+      "overshoot": 0.08,
+      "drift": 0.0013567360508015252,
+      "cross_axis": 0.03274779488712813
+    },
+    "total_score": 0.3669498348179682,
+    "rank": 3
+  },
+  {
+    "name": "low_noise",
+    "alpha": 0.1,
+    "gyro_weight": 0.985,
+    "static_mae": 0.24319999999999986,
+    "noise_stddev": 0.11144232230968762,
+    "peak_to_peak": 1.7499999999999998,
+    "dynamic_lag": 6.1,
+    "overshoot": 0.0,
+    "drift": 0.07783862865249563,
+    "cross_axis": 1.0504333333333336,
+    "score_components": {
+      "static_mae": 0.24896876841485213,
+      "noise_stddev": 0.18,
+      "peak_to_peak": 0.12,
+      "dynamic_lag": 0.15,
+      "overshoot": 0.0,
+      "drift": 0.12,
+      "cross_axis": 0.1
+    },
+    "total_score": 0.9189687684148521,
+    "rank": 4
+  }
+]

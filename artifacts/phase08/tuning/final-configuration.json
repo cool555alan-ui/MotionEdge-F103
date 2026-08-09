@@ -1,0 +1,15 @@
+{
+  "selected_candidate": "current",
+  "alpha": 0.2,
+  "gyro_weight": 0.98,
+  "alpha_milli": 200,
+  "gyro_weight_milli": 980,
+  "rank": 1,
+  "total_score": 0.08451491970192984,
+  "selection_reason": "Lowest measured composite score with the best static MAE and stationary standard deviation; no firmware or runtime-parameter change is justified.",
+  "offline_replay": "NOT_PERFORMED_10HZ_FILTERED_TELEMETRY_INSUFFICIENT",
+  "dynamic_level": "B_MANUAL",
+  "final_stability_evidence": "artifacts/phase08/long-drift/summary.json",
+  "final_stability_duration_s": 1800,
+  "configuration_changed": false
+}

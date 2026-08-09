@@ -1,0 +1,19 @@
+{
+  "phase_checks": {"phase1": "PASS", "phase2": "PASS", "phase3": "PASS", "phase4": "PASS", "phase5": "PASS", "phase6": "PASS", "phase7": "PASS", "phase8": "PASS"},
+  "c_host_assertions": {"passed": 466, "total": 466},
+  "python_tests": {"passed": 103, "total": 103, "phase8_subset": 34},
+  "debug": {
+    "status": "PASS", "flash_bytes": 45732, "ram_bytes": 16480, "warnings": 0,
+    "elf": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.elf",
+    "hex": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.hex",
+    "bin": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.bin"
+  },
+  "release": {
+    "status": "PASS", "flash_bytes": 40260, "ram_bytes": 16472, "warnings": 0,
+    "elf": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.elf",
+    "hex": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.hex",
+    "bin": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.bin"
+  },
+  "firmware_modified": false,
+  "git_diff_check": "PASS"
+}

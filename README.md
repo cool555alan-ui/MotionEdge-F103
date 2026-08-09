@@ -137,6 +137,10 @@ Parser错误均为0。Roll范围-27.04°～33.35°，Pitch范围-40.58°～25.81
 
 Phase 7 keeps firmware at `0.6.0` and updates the Windows `motionctl` gateway to `0.7.0`. The path is MPU6500 -> STM32F103/FreeRTOS -> CRC16 serial protocol -> Python gateway -> local Mosquitto -> Node-RED. Topic, startup, dashboard, and validation details are in [the gateway guide](docs/phase-07-mqtt-gateway.md), [topic contract](docs/mqtt-topic-contract.md), [Node-RED guide](docs/node-red-dashboard.md), and [validation method](docs/phase-07-validation-method.md).
 
+## Phase 8: attitude characterization
+
+Phase 8 keeps firmware at `0.6.0` and updates `motionctl` to `0.8.0`. It adds real-device Roll/Pitch static accuracy, noise, drift, manual dynamic comparison, online RuntimeConfig candidate validation, transparent ranking, and report generation. The MPU6500 is a six-axis IMU, so absolute Yaw is intentionally outside the observable boundary. Run `python -m motionctl characterize --help`, `python -m motionctl tune --help`, and `tools\check-phase8.ps1` for the reproducible workflow.
+
 The isolated development broker binds only to `127.0.0.1:1884`; TLS is disabled, so it is not a public-cloud or production deployment. Phase 8 is attitude accuracy and parameter tuning, not actuator control.
 
 ```powershell

@@ -18,6 +18,7 @@ from .device import DeviceClient
 from .errors import (EXIT_REPORT, EXIT_RUNTIME, EXIT_SUCCESS, MotionCtlError,
                      ReportError, ValidationError)
 from .gateway_cli import add_gateway_parser, run_gateway_command
+from .phase08_cli import add_phase08_parsers, run_phase08
 from .metrics import command_metrics, motion_metrics
 from .models import CaptureMetadata, stable_dict
 from .report import generate_report
@@ -61,6 +62,7 @@ def build_parser() -> argparse.ArgumentParser:
     report = subs.add_parser("report"); report.add_argument("session", type=Path); report.add_argument("--output", type=Path, required=True)
     subs.add_parser("simulate-device"); subs.add_parser("self-test")
     add_gateway_parser(subs)
+    add_phase08_parsers(subs)
     return parser
 
 
@@ -151,6 +153,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "gateway":
             return run_gateway_command(args)
+        if args.command in ("characterize", "tune"):
+            return run_phase08(args)
         if args.command == "ports":
             ports = list_ports()
             if not ports: print("No serial ports found.")

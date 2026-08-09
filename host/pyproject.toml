@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "motionedge-motionctl"
-version = "0.7.0"
+version = "0.8.0"
 description = "MotionEdge device CLI, capture, validation and report tools"
 requires-python = ">=3.10"
 dependencies = ["pyserial>=3.5", "matplotlib>=3.7,<4", "paho-mqtt>=2.0,<3"]

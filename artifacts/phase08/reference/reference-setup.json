@@ -1,0 +1,11 @@
+{
+  "reference_type": "Apple iPhone built-in level",
+  "resolution_deg": null,
+  "uncertainty_deg": null,
+  "uncertainty_status": "REFERENCE_UNCERTAINTY_UNKNOWN",
+  "fixture": "iPhone aligned with the same breadboard/fixture surface during each reading",
+  "board_orientation": "component side upward; X front, Y right, Z up pending real sign confirmation",
+  "coordinate_convention": "X forward, Y right, Z up; Roll about X, Pitch about Y",
+  "recorded_at": "2026-08-06T00:00:00+08:00",
+  "claim_boundary": "Engineering comparison relative to the current phone reference; not laboratory absolute accuracy"
+}

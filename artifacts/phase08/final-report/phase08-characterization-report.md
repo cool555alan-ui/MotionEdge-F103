@@ -1,0 +1,719 @@
+# Phase 8 attitude characterization report
+
+- Conclusion: **REFERENCE_LIMITED**
+- Commit tested: `9a1cae1d5db5ff0c33b04d19b0f69087298ccaf2`
+- Firmware: 0.6.0; motionctl: 0.8.0
+- Hardware: STM32F103C8T6 + MPU6500 (0x68, WHO_AM_I 0x70)
+- Serial: COM4, 115200 8N1
+- Reference: Apple iPhone built-in level; uncertainty: REFERENCE_UNCERTAINTY_UNKNOWN
+- Claim boundary: engineering comparison only; no laboratory absolute-accuracy claim.
+
+## Acceptance matrix
+
+- static_roll: REFERENCE_LIMITED
+- static_pitch: REFERENCE_LIMITED
+- static_roll_completeness: WARN
+- static_pitch_completeness: WARN
+- noise_600s: PASS
+- drift_1800s: PASS
+- dynamic_motion: WARN
+- dynamic_return_to_level: NOT_TESTED
+- tuning: PASS
+- final_configuration_stability: PASS
+- mqtt_node_red_quick_regression: PASS
+- absolute_yaw: NOT_APPLICABLE
+
+## Static accuracy
+
+```json
+{
+  "roll": {
+    "count": 2859,
+    "mae": 0.35213361315145153,
+    "rmse": 0.6978051584608246,
+    "max_abs_error": 7.049999999999997,
+    "bias": 0.03962574326687653,
+    "error": {
+      "count": 2859,
+      "mean": 0.03962574326687653,
+      "stddev": 0.6968010227756924,
+      "min": -7.049999999999997,
+      "max": 3.5500000000000007,
+      "peak_to_peak": 10.599999999999998,
+      "median": 0.030000000000001137,
+      "mad": 0.15000000000000036,
+      "p2_5": -1.5854999999999992,
+      "p97_5": 1.280999999999994
+    },
+    "measurement": {
+      "count": 2859,
+      "mean": 0.03612801678908709,
+      "stddev": 20.80077284183825,
+      "min": -37.05,
+      "max": 32.64,
+      "peak_to_peak": 69.69,
+      "median": 0.41,
+      "mad": 19.7,
+      "p2_5": -30.2665,
+      "p97_5": 30.68
+    },
+    "fit": {
+      "slope": 1.0008472113267908,
+      "intercept": 0.03962870658036653,
+      "r_squared": 0.9988785458461938
+    },
+    "repeatability_stddev": 0.24452751607898615,
+    "hysteresis_max": 0.925408388520971,
+    "return_to_zero_error": 0.22847682119205298,
+    "cross_axis_deg_per_10deg": 0.07399233614166538,
+    "cross_axis_peak_to_peak": 6.08980044345898
+  },
+  "pitch": {
+    "count": 500,
+    "mae": 0.37539999999999996,
+    "rmse": 0.5153833524668797,
+    "max_abs_error": 1.5600000000000005,
+    "bias": -0.013239999999999995,
+    "error": {
+      "count": 500,
+      "mean": -0.013239999999999995,
+      "stddev": 0.5157292465154781,
+      "min": -1.5600000000000005,
+      "max": 1.1799999999999997,
+      "peak_to_peak": 2.74,
+      "median": 0.10999999999999943,
+      "mad": 0.1999999999999993,
+      "p2_5": -1.1852500000000006,
+      "p97_5": 1.0652499999999994
+    },
+    "measurement": {
+      "count": 500,
+      "mean": 1.48676,
+      "stddev": 19.491778357797397,
+      "min": -31.28,
+      "max": 30.29,
+      "peak_to_peak": 61.57,
+      "median": 0.225,
+      "mad": 19.604999999999997,
+      "p2_5": -31.14525,
+      "p97_5": 30.23525
+    },
+    "fit": {
+      "slope": 1.0082550234741785,
+      "intercept": -0.025622535211267783,
+      "r_squared": 0.9993669230808202
+    },
+    "repeatability_stddev": 0.4081040355218363,
+    "hysteresis_max": 1.7971999999999966,
+    "return_to_zero_error": 0.21080000000000002,
+    "cross_axis_deg_per_10deg": -0.904545238095238,
+    "cross_axis_peak_to_peak": 6.439
+  }
+}
+```
+
+## Stationary noise
+
+Source: first 600 seconds of fully calibrated 1800-second drift capture; duration 600.0 s.
+```json
+{
+  "roll": {
+    "count": 6001,
+    "mean": 0.39672887852024663,
+    "stddev": 0.019015291589281683,
+    "min": 0.34,
+    "max": 0.47,
+    "peak_to_peak": 0.12999999999999995,
+    "median": 0.4,
+    "mad": 0.010000000000000009,
+    "p2_5": 0.36,
+    "p97_5": 0.43,
+    "p95_absolute_deviation": 0.036728878520246644,
+    "max_instantaneous_jump": 0.03999999999999998
+  },
+  "pitch": {
+    "count": 6001,
+    "mean": 0.3572837860356607,
+    "stddev": 0.015803616212654564,
+    "min": 0.3,
+    "max": 0.42,
+    "peak_to_peak": 0.12,
+    "median": 0.36,
+    "mad": 0.010000000000000009,
+    "p2_5": 0.33,
+    "p97_5": 0.39,
+    "p95_absolute_deviation": 0.032716213964339325,
+    "max_instantaneous_jump": 0.06
+  },
+  "accel_magnitude_mg": {
+    "count": 6001,
+    "mean": 999.9770191296848,
+    "stddev": 1.2905577781591036,
+    "min": 990.1020149459348,
+    "max": 1005.0487550362917,
+    "peak_to_peak": 14.946740090356911,
+    "median": 1000.0424990969134,
+    "mad": 0.9999574601720269,
+    "p2_5": 998.0305606543319,
+    "p97_5": 1002.0583815327328
+  },
+  "gyro_mdps": {
+    "x": {
+      "count": 6001,
+      "mean": -11.645559073487751,
+      "stddev": 47.60613599132873,
+      "min": -746.0,
+      "max": 487.0,
+      "peak_to_peak": 1233.0,
+      "median": -11.0,
+      "mad": 29.0,
+      "p2_5": -98.0,
+      "p97_5": 75.0
+    },
+    "y": {
+      "count": 6001,
+      "mean": -5.110648225295784,
+      "stddev": 50.682966450900125,
+      "min": -278.0,
+      "max": 269.0,
+      "peak_to_peak": 547.0,
+      "median": -5.0,
+      "mad": 33.0,
+      "p2_5": -104.0,
+      "p97_5": 94.0
+    },
+    "z": {
+      "count": 6001,
+      "mean": 17.490918180303282,
+      "stddev": 42.07465934708766,
+      "min": -144.0,
+      "max": 167.0,
+      "peak_to_peak": 311.0,
+      "median": 17.0,
+      "mad": 28.0,
+      "p2_5": -67.0,
+      "p97_5": 99.0
+    }
+  },
+  "sequence": {
+    "count": 6001,
+    "duplicates": 0,
+    "regressions": 0,
+    "gaps": 0,
+    "continuous": true
+  },
+  "count": 6001
+}
+```
+
+## Long drift
+
+Duration: 1800.2 s.
+```json
+{
+  "count": 18003,
+  "warmup_samples": 600,
+  "sequence": {
+    "count": 18003,
+    "duplicates": 0,
+    "regressions": 0,
+    "gaps": 0,
+    "continuous": true
+  },
+  "roll": {
+    "initial_60s_mean": 0.40058333333333335,
+    "final_60s_mean": 0.39071666666666666,
+    "total_drift": -0.00986666666666669,
+    "max_deviation": 0.10058333333333336,
+    "slope_deg_per_min": -0.000820948488333434
+  },
+  "pitch": {
+    "initial_60s_mean": 0.36433333333333334,
+    "final_60s_mean": 0.33365,
+    "total_drift": -0.03068333333333334,
+    "max_deviation": 0.08433333333333332,
+    "slope_deg_per_min": -0.0007507029525550235
+  },
+  "five_minute_windows": [
+    {
+      "start_min": 0,
+      "roll_mean": 0.40365333333333336,
+      "pitch_mean": 0.35873333333333335
+    },
+    {
+      "start_min": 5,
+      "roll_mean": 0.3854433333333333,
+      "pitch_mean": 0.35457333333333335
+    },
+    {
+      "start_min": 10,
+      "roll_mean": 0.37065333333333333,
+      "pitch_mean": 0.34886666666666666
+    },
+    {
+      "start_min": 15,
+      "roll_mean": 0.37007,
+      "pitch_mean": 0.35369666666666666
+    },
+    {
+      "start_min": 20,
+      "roll_mean": 0.37347,
+      "pitch_mean": 0.34063333333333334
+    },
+    {
+      "start_min": 25,
+      "roll_mean": 0.3858343736995422,
+      "pitch_mean": 0.33969621306699954
+    }
+  ],
+  "accel_magnitude_mg": {
+    "count": 17403,
+    "mean": 999.2263570661452,
+    "stddev": 1.394054832248346,
+    "min": 990.1020149459348,
+    "max": 1023.0244376357781,
+    "peak_to_peak": 32.9224226898433,
+    "median": 999.0445435514875,
+    "mad": 0.9979555454258389,
+    "p2_5": 997.030591306004,
+    "p97_5": 1002.0424142719709
+  },
+  "gyro_mdps": {
+    "x": {
+      "count": 17403,
+      "mean": -11.977245302534046,
+      "stddev": 50.22259209748129,
+      "min": -1236.0,
+      "max": 846.0,
+      "peak_to_peak": 2082.0,
+      "median": -12.0,
+      "mad": 29.0,
+      "p2_5": -98.0,
+      "p97_5": 75.0
+    },
+    "y": {
+      "count": 17403,
+      "mean": -16.751364707234384,
+      "stddev": 51.53172336078393,
+      "min": -639.0,
+      "max": 918.0,
+      "peak_to_peak": 1557.0,
+      "median": -17.0,
+      "mad": 33.0,
+      "p2_5": -114.0,
+      "p97_5": 80.0
+    },
+    "z": {
+      "count": 17403,
+      "mean": 24.390277538355456,
+      "stddev": 42.99139630221635,
+      "min": -146.0,
+      "max": 202.0,
+      "peak_to_peak": 348.0,
+      "median": 25.0,
+      "mad": 29.0,
+      "p2_5": -60.0,
+      "p97_5": 107.0
+    }
+  },
+  "temperature": "NOT_AVAILABLE_IN_PROTOCOL"
+}
+```
+
+## Dynamic response
+
+B-level manual motion only; the user did not return to level in the first 10-trial set, so recovery and strict step-response metrics are NOT_TESTED.
+```json
+{
+  "metadata": {
+    "experiment": "dynamic",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-09T11:34:54+0800",
+    "level": "B_MANUAL",
+    "axis": "roll",
+    "target_angle": 30.0,
+    "trials": 10,
+    "limitation": "Manual motion duration is not algorithm response delay.",
+    "user_observation": "The board was not returned to level between/after trials.",
+    "return_to_level": "NOT_TESTED",
+    "settling_time": "NOT_TESTED"
+  },
+  "aggregate": {
+    "valid_motion_trials": 10,
+    "total_trials": 10,
+    "minimum_roll_range_deg": 6.9,
+    "maximum_roll_range_deg": 27.71,
+    "parser_errors": 0,
+    "motion_response": "OBSERVED",
+    "recovery_response": "NOT_TESTED"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "angle_min": 16.93,
+      "angle_max": 30.94,
+      "max_gyro_mdps": 22848,
+      "frames": 81,
+      "parser": {
+        "frames": 93,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 468
+      }
+    },
+    {
+      "trial": 2,
+      "angle_min": 23.24,
+      "angle_max": 30.14,
+      "max_gyro_mdps": 11081,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 114
+      }
+    },
+    {
+      "trial": 3,
+      "angle_min": 8.95,
+      "angle_max": 28.74,
+      "max_gyro_mdps": 14590,
+      "frames": 80,
+      "parser": {
+        "frames": 93,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 113
+      }
+    },
+    {
+      "trial": 4,
+      "angle_min": 8.46,
+      "angle_max": 29.79,
+      "max_gyro_mdps": 137455,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 114
+      }
+    },
+    {
+      "trial": 5,
+      "angle_min": 8.84,
+      "angle_max": 29.87,
+      "max_gyro_mdps": 30435,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      }
+    },
+    {
+      "trial": 6,
+      "angle_min": 8.84,
+      "angle_max": 33.56,
+      "max_gyro_mdps": 34668,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 284
+      }
+    },
+    {
+      "trial": 7,
+      "angle_min": 8.34,
+      "angle_max": 33.55,
+      "max_gyro_mdps": 71799,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      }
+    },
+    {
+      "trial": 8,
+      "angle_min": 3.59,
+      "angle_max": 28.82,
+      "max_gyro_mdps": 107343,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 282
+      }
+    },
+    {
+      "trial": 9,
+      "angle_min": 8.29,
+      "angle_max": 29.39,
+      "max_gyro_mdps": 48032,
+      "frames": 81,
+      "parser": {
+        "frames": 108,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      }
+    },
+    {
+      "trial": 10,
+      "angle_min": 5.02,
+      "angle_max": 32.73,
+      "max_gyro_mdps": 89034,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      }
+    }
+  ]
+}
+```
+
+## Parameter tuning
+
+100 Hz offline replay was not performed because the existing protocol exposes only 10 Hz filtered telemetry. Four candidates were instead validated online with configuration read-back and restoration.
+```json
+{
+  "ranking": [
+    {
+      "name": "current",
+      "alpha": 0.2,
+      "gyro_weight": 0.98,
+      "static_mae": 0.0741999999999976,
+      "noise_stddev": 0.016732793476787917,
+      "peak_to_peak": 0.13,
+      "dynamic_lag": 3.6,
+      "overshoot": 0.25800000000000267,
+      "drift": 0.006501337848151284,
+      "cross_axis": 0.6774333333333334,
+      "score_components": {
+        "static_mae": 0.0,
+        "noise_stddev": 0.0,
+        "peak_to_peak": 0.0007361963190184137,
+        "dynamic_lag": 0.025,
+        "overshoot": 0.0006011183597390556,
+        "drift": 0.0,
+        "cross_axis": 0.058177605023172374
+      },
+      "total_score": 0.08451491970192984,
+      "rank": 1
+    },
+    {
+      "name": "fast_response",
+      "alpha": 0.4,
+      "gyro_weight": 0.95,
+      "static_mae": 0.1734000000000009,
+      "noise_stddev": 0.025500221764122467,
+      "peak_to_peak": 0.49,
+      "dynamic_lag": 5.9,
+      "overshoot": 0.0,
+      "drift": 0.011277540485535498,
+      "cross_axis": 0.1585666666666666,
+      "score_components": {
+        "static_mae": 0.14614024749558474,
+        "noise_stddev": 0.016662917777836243,
+        "peak_to_peak": 0.02723926380368099,
+        "dynamic_lag": 0.14000000000000004,
+        "overshoot": 0.0,
+        "drift": 0.008034287677927935,
+        "cross_axis": 0.0
+      },
+      "total_score": 0.3380767167550299,
+      "rank": 2
+    },
+    {
+      "name": "balanced",
+      "alpha": 0.15,
+      "gyro_weight": 0.97,
+      "static_mae": 0.24389999999999823,
+      "noise_stddev": 0.01822989008714834,
+      "peak_to_peak": 0.11999999999999988,
+      "dynamic_lag": 3.1,
+      "overshoot": 34.336,
+      "drift": 0.007307886799824335,
+      "cross_axis": 0.4506333333333334,
+      "score_components": {
+        "static_mae": 0.25,
+        "noise_stddev": 0.0028453038800385867,
+        "peak_to_peak": 0.0,
+        "dynamic_lag": 0.0,
+        "overshoot": 0.08,
+        "drift": 0.0013567360508015252,
+        "cross_axis": 0.03274779488712813
+      },
+      "total_score": 0.3669498348179682,
+      "rank": 3
+    },
+    {
+      "name": "low_noise",
+      "alpha": 0.1,
+      "gyro_weight": 0.985,
+      "static_mae": 0.24319999999999986,
+      "noise_stddev": 0.11144232230968762,
+      "peak_to_peak": 1.7499999999999998,
+      "dynamic_lag": 6.1,
+      "overshoot": 0.0,
+      "drift": 0.07783862865249563,
+      "cross_axis": 1.0504333333333336,
+      "score_components": {
+        "static_mae": 0.24896876841485213,
+        "noise_stddev": 0.18,
+        "peak_to_peak": 0.12,
+        "dynamic_lag": 0.15,
+        "overshoot": 0.0,
+        "drift": 0.12,
+        "cross_axis": 0.1
+      },
+      "total_score": 0.9189687684148521,
+      "rank": 4
+    }
+  ],
+  "selected": {
+    "selected_candidate": "current",
+    "alpha": 0.2,
+    "gyro_weight": 0.98,
+    "alpha_milli": 200,
+    "gyro_weight_milli": 980,
+    "rank": 1,
+    "total_score": 0.08451491970192984,
+    "selection_reason": "Lowest measured composite score with the best static MAE and stationary standard deviation; no firmware or runtime-parameter change is justified.",
+    "offline_replay": "NOT_PERFORMED_10HZ_FILTERED_TELEMETRY_INSUFFICIENT",
+    "dynamic_level": "B_MANUAL",
+    "final_stability_evidence": "artifacts/phase08/long-drift/summary.json",
+    "final_stability_duration_s": 1800,
+    "configuration_changed": false
+  }
+}
+```
+
+## Data integrity
+
+```json
+{
+  "final_stability": true,
+  "mqtt_node_red": {
+    "tested_at": "2026-08-09T12:13:15.6615736+08:00",
+    "scope": "quick live-link regression; Phase 7 600 s evidence remains authoritative",
+    "motion_received_delta": 52,
+    "node_red_metrics": {
+      "motion_received": 52,
+      "health_received": 5,
+      "duplicate_received": 0,
+      "invalid_json": 0,
+      "schema_error": 0,
+      "sequence_gap": 0,
+      "command_sent": 0,
+      "command_success": 0,
+      "command_timeout": 0,
+      "last_sequence": 267919,
+      "last_motion_unix_ms": 1786248795234,
+      "local_receive_latency_ms": {
+        "count": 52,
+        "p50": 1,
+        "p95": 2,
+        "max": 2
+      },
+      "note": "?????Broker????,??????????"
+    },
+    "checks": {
+      "motion_frames": "PASS",
+      "invalid_json": "PASS",
+      "schema_error": "PASS",
+      "sequence_duplicate": "PASS",
+      "sequence_regression": "PASS",
+      "sequence_gap": "PASS"
+    }
+  }
+}
+```
+
+## Engineering regression
+
+```json
+{
+  "phase_checks": {
+    "phase1": "PASS",
+    "phase2": "PASS",
+    "phase3": "PASS",
+    "phase4": "PASS",
+    "phase5": "PASS",
+    "phase6": "PASS",
+    "phase7": "PASS",
+    "phase8": "PASS"
+  },
+  "c_host_assertions": {
+    "passed": 466,
+    "total": 466
+  },
+  "python_tests": {
+    "passed": 103,
+    "total": 103,
+    "phase8_subset": 34
+  },
+  "debug": {
+    "status": "PASS",
+    "flash_bytes": 45732,
+    "ram_bytes": 16480,
+    "warnings": 0,
+    "elf": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.elf",
+    "hex": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.hex",
+    "bin": "C:/STM32/MotionEdge-F103/build/Debug/MotionEdge-F103.bin"
+  },
+  "release": {
+    "status": "PASS",
+    "flash_bytes": 40260,
+    "ram_bytes": 16472,
+    "warnings": 0,
+    "elf": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.elf",
+    "hex": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.hex",
+    "bin": "C:/STM32/MotionEdge-F103/build/Release/MotionEdge-F103.bin"
+  },
+  "firmware_modified": false,
+  "git_diff_check": "PASS"
+}
+```
+
+## Known limitations
+
+- No magnetometer: absolute Yaw is unobservable.
+- Linear acceleration biases gravity tilt.
+- Complementary filter is not inertial navigation.
+- Apple iPhone level reference uncertainty is unknown.
+- No environmental-chamber temperature characterization.
+- Breadboard fixture and sensor mounting contribute cross-axis error.
+- 10 Hz filtered telemetry cannot support honest 100 Hz offline parameter replay.

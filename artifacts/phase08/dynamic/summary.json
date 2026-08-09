@@ -1,0 +1,178 @@
+{
+  "metadata": {
+    "experiment": "dynamic",
+    "motionctl_version": "0.7.0",
+    "firmware_version": "0.6.0",
+    "protocol_version": 1,
+    "port": "COM4",
+    "baud": 115200,
+    "config": {
+      "sensor_ms": 10,
+      "telemetry_ms": 100,
+      "alpha_milli": 200,
+      "gyro_weight_milli": 980,
+      "log_level": 1,
+      "telemetry_enabled": false
+    },
+    "created_at": "2026-08-09T11:34:54+0800",
+    "level": "B_MANUAL",
+    "axis": "roll",
+    "target_angle": 30.0,
+    "trials": 10,
+    "limitation": "Manual motion duration is not algorithm response delay.",
+    "user_observation": "The board was not returned to level between/after trials.",
+    "return_to_level": "NOT_TESTED",
+    "settling_time": "NOT_TESTED"
+  },
+  "aggregate": {
+    "valid_motion_trials": 10,
+    "total_trials": 10,
+    "minimum_roll_range_deg": 6.9,
+    "maximum_roll_range_deg": 27.71,
+    "parser_errors": 0,
+    "motion_response": "OBSERVED",
+    "recovery_response": "NOT_TESTED"
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "angle_min": 16.93,
+      "angle_max": 30.94,
+      "max_gyro_mdps": 22848,
+      "frames": 81,
+      "parser": {
+        "frames": 93,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 468
+      }
+    },
+    {
+      "trial": 2,
+      "angle_min": 23.24,
+      "angle_max": 30.14,
+      "max_gyro_mdps": 11081,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 114
+      }
+    },
+    {
+      "trial": 3,
+      "angle_min": 8.95,
+      "angle_max": 28.74,
+      "max_gyro_mdps": 14590,
+      "frames": 80,
+      "parser": {
+        "frames": 93,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 113
+      }
+    },
+    {
+      "trial": 4,
+      "angle_min": 8.46,
+      "angle_max": 29.79,
+      "max_gyro_mdps": 137455,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 114
+      }
+    },
+    {
+      "trial": 5,
+      "angle_min": 8.84,
+      "angle_max": 29.87,
+      "max_gyro_mdps": 30435,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      }
+    },
+    {
+      "trial": 6,
+      "angle_min": 8.84,
+      "angle_max": 33.56,
+      "max_gyro_mdps": 34668,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 284
+      }
+    },
+    {
+      "trial": 7,
+      "angle_min": 8.34,
+      "angle_max": 33.55,
+      "max_gyro_mdps": 71799,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      }
+    },
+    {
+      "trial": 8,
+      "angle_min": 3.59,
+      "angle_max": 28.82,
+      "max_gyro_mdps": 107343,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 282
+      }
+    },
+    {
+      "trial": 9,
+      "angle_min": 8.29,
+      "angle_max": 29.39,
+      "max_gyro_mdps": 48032,
+      "frames": 81,
+      "parser": {
+        "frames": 108,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 110
+      }
+    },
+    {
+      "trial": 10,
+      "angle_min": 5.02,
+      "angle_max": 32.73,
+      "max_gyro_mdps": 89034,
+      "frames": 80,
+      "parser": {
+        "frames": 92,
+        "crc_errors": 0,
+        "length_errors": 0,
+        "version_errors": 0,
+        "discarded_bytes": 112
+      }
+    }
+  ]
+}
