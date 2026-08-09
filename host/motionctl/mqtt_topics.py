@@ -36,6 +36,8 @@ class TopicSet:
     @property
     def health(self): return self._device("telemetry/health")
     @property
+    def actuator(self): return self._device("telemetry/actuator")
+    @property
     def events(self): return self._device("events")
     @property
     def command(self): return self._device("command")
@@ -56,6 +58,7 @@ class TopicSet:
             "state": TopicRule(self.state, qos_state, True),
             "motion": TopicRule(self.motion, qos_telemetry, False),
             "health": TopicRule(self.health, qos_telemetry, False),
+            "actuator": TopicRule(self.actuator, qos_telemetry, False),
             "events": TopicRule(self.events, 1, False),
             "command": TopicRule(self.command, qos_command, False),
             "response": TopicRule(self.response, qos_command, False),

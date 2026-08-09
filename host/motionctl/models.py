@@ -88,7 +88,35 @@ class HealthSample:
     protocol_rx_frames: int
     protocol_crc_errors: int
     uart_rx_overflows: int
+    sensor_deadline_miss: int
+    communication_deadline_miss: int
+    telemetry_deadline_miss: int
+    health_deadline_miss: int
     host_monotonic_ns: int | None = None
+
+
+@dataclass(frozen=True)
+class ActuatorStatus:
+    mode_raw: int
+    state_raw: int
+    armed: bool
+    owner_raw: int
+    mode: str
+    state: str
+    owner: str
+    target_angle_cdeg: int
+    current_angle_cdeg: int
+    target_angle_deg: float
+    current_angle_deg: float
+    target_pulse_us: int
+    current_pulse_us: int
+    safe_min_us: int
+    safe_max_us: int
+    command_age_ms: int
+    timeout_count: int
+    limit_count: int
+    fault_count: int
+    estop_count: int
 
 
 @dataclass(frozen=True)

@@ -1,0 +1,2 @@
+measured_safe_min_us,measured_center_us,measured_safe_max_us,recommended_safe_min_us,recommended_safe_max_us,margin_us,status
+1400,1500,1600,1450,1550,50,PASS

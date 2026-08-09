@@ -5,6 +5,7 @@
 #include "app_config.h"
 #include "app_status.h"
 #include "app_version.h"
+#include "actuator_service.h"
 #include "bsp_i2c.h"
 #include "bsp_led.h"
 #include "bsp_uart.h"
@@ -383,6 +384,7 @@ bool App_Init(uint32_t now_ms)
             &s_calibration_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
         !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe) ||
         !MotionService_Init(now_ms) || !MotionService_StartCalibration() ||
+        !ActuatorService_Init(now_ms) ||
         !CommunicationService_Init(now_ms))
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
@@ -424,6 +426,24 @@ void App_SensorRunOnce(uint32_t now_ms)
     App_RunI2cScanStep(now_ms);
     App_RunMotionPipeline(now_ms);
     App_RunSensorRecovery(now_ms);
+}
+
+void App_ActuatorRunOnce(uint32_t now_ms)
+{
+    MotionFrame_t frame;
+    bool has_motion;
+    bool motion_stale;
+
+    if (!s_app_initialized) { return; }
+    has_motion = MotionService_GetLatestFrame(&frame) && frame.valid &&
+                 (MotionService_GetState() != MOTION_SERVICE_STATE_DEGRADED);
+    motion_stale = !has_motion ||
+                   ((uint32_t)(now_ms - frame.timestamp_ms) > 100U) ||
+                   ((frame.status_flags & MOTION_SAMPLE_FLAG_STALE) != 0U);
+    ActuatorService_Update(now_ms,
+                           AppStatus_GetState() == APP_STATE_FAULT,
+                           has_motion,
+                           motion_stale);
 }
 
 void App_CommunicationRunOnce(uint32_t now_ms)
@@ -507,6 +527,7 @@ void App_RunOnce(uint32_t now_ms)
     }
 
     App_SensorRunOnce(now_ms);
+    App_ActuatorRunOnce(now_ms);
     App_CommunicationRunOnce(now_ms);
     App_TelemetryRunOnce(
         now_ms, MotionService_GetLatestFrame(&frame) ? &frame : NULL);

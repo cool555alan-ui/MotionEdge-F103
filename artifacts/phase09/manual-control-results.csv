@@ -1,0 +1,6 @@
+pulse_us,target_angle_deg,status,observed_state,note
+1400,-9.0,PASS,HOLDING,"实机动作安全；该点仅用于测得保守边界，不作为正式软件输出"
+1450,-4.5,PASS,HOLDING,"动作较小但可辨认，无卡死、持续抖动或异常发热；正式最小值"
+1500,0.0,PASS,HOLDING,"中心保持，舵机有保持力"
+1550,4.5,PASS,HOLDING,"动作较小但可辨认，无卡死、持续抖动或异常发热；正式最大值"
+1600,9.0,PASS,HOLDING,"实机动作安全；该点仅用于测得保守边界，不作为正式软件输出"

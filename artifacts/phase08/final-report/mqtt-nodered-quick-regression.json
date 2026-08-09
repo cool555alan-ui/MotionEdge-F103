@@ -1,5 +1,5 @@
 ﻿{
-    "tested_at":  "2026-08-09T12:13:15.6615736+08:00",
+    "tested_at":  "2026-08-09T15:39:32.4901900+08:00",
     "scope":  "quick live-link regression; Phase 7 600 s evidence remains authoritative",
     "motion_received_delta":  52,
     "node_red_metrics":  {
@@ -12,13 +12,13 @@
                              "command_sent":  0,
                              "command_success":  0,
                              "command_timeout":  0,
-                             "last_sequence":  267919,
-                             "last_motion_unix_ms":  1786248795234,
+                             "last_sequence":  12479,
+                             "last_motion_unix_ms":  1786261171959,
                              "local_receive_latency_ms":  {
                                                               "count":  52,
                                                               "p50":  1,
-                                                              "p95":  2,
-                                                              "max":  2
+                                                              "p95":  1,
+                                                              "max":  1
                                                           },
                              "note":  "?????Broker????,??????????"
                          },

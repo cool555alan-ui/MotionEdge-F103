@@ -4,6 +4,7 @@
 
 #include "app_status.h"
 #include "app_version.h"
+#include "actuator_service.h"
 #include "config_service.h"
 #include "motion_service.h"
 #include "telemetry_service.h"
@@ -72,6 +73,39 @@ static void DeserializeConfig(const uint8_t *data, RuntimeConfig_t *config)
     config->complementary_gyro_weight_milli = Get16(&data[6]);
     config->log_level = data[8];
     config->telemetry_enabled = data[9] != 0U;
+}
+
+static ProtocolStatusCode_t ActuatorStatusToProtocol(ActuatorResult_t result)
+{
+    switch (result)
+    {
+        case ACTUATOR_RESULT_OK: return PROTOCOL_STATUS_OK;
+        case ACTUATOR_RESULT_INVALID_ARGUMENT: return PROTOCOL_STATUS_INVALID_VALUE;
+        case ACTUATOR_RESULT_NOT_ARMED: return PROTOCOL_STATUS_NOT_READY;
+        case ACTUATOR_RESULT_OWNER_CONFLICT:
+        case ACTUATOR_RESULT_FAULT: return PROTOCOL_STATUS_BUSY;
+        case ACTUATOR_RESULT_UNSUPPORTED: return PROTOCOL_STATUS_UNSUPPORTED;
+        case ACTUATOR_RESULT_HARDWARE:
+        default: return PROTOCOL_STATUS_INTERNAL_ERROR;
+    }
+}
+
+static bool IsProtocolOwner(uint8_t owner)
+{
+    return (owner == (uint8_t)ACTUATOR_OWNER_SERIAL) ||
+           (owner == (uint8_t)ACTUATOR_OWNER_MQTT);
+}
+
+static bool BuildActuatorResult(const ProtocolFrame_t *request,
+                                ActuatorResult_t result,
+                                ProtocolFrame_t *response)
+{
+    return BuildResponse(request,
+                         ActuatorStatusToProtocol(result),
+                         (uint16_t)result,
+                         NULL,
+                         0U,
+                         response);
 }
 
 bool CommandService_Init(void)
@@ -250,6 +284,112 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                                  telemetry.payload,
                                  telemetry.payload_length,
                                  response);
+        }
+        case PROTOCOL_TYPE_ACTUATOR_GET_STATUS:
+        {
+            ActuatorStatus_t status;
+            ProtocolFrame_t telemetry;
+            if (request->payload_length != 0U)
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_INVALID_LENGTH,
+                                     0U, NULL, 0U, response);
+            }
+            if (!ActuatorService_GetCurrentStatus(&status) ||
+                !TelemetryService_BuildActuator(&status, 0U, &telemetry))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_NOT_READY,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildResponse(request, PROTOCOL_STATUS_OK, 0U,
+                                 telemetry.payload, telemetry.payload_length,
+                                 response);
+        }
+        case PROTOCOL_TYPE_ACTUATOR_ARM:
+        case PROTOCOL_TYPE_ACTUATOR_DISARM:
+        case PROTOCOL_TYPE_ACTUATOR_CENTER:
+        case PROTOCOL_TYPE_ACTUATOR_ESTOP:
+            if ((request->payload_length != 1U) ||
+                !IsProtocolOwner(request->payload[0]))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 1U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            if (request->type == PROTOCOL_TYPE_ACTUATOR_ARM)
+            {
+                return BuildActuatorResult(
+                    request,
+                    ActuatorService_Arm((ActuatorOwner_t)request->payload[0]),
+                    response);
+            }
+            if (request->type == PROTOCOL_TYPE_ACTUATOR_DISARM)
+            {
+                return BuildActuatorResult(
+                    request,
+                    ActuatorService_Disarm((ActuatorOwner_t)request->payload[0]),
+                    response);
+            }
+            if (request->type == PROTOCOL_TYPE_ACTUATOR_CENTER)
+            {
+                return BuildActuatorResult(
+                    request,
+                    ActuatorService_Center((ActuatorOwner_t)request->payload[0]),
+                    response);
+            }
+            return BuildActuatorResult(
+                request,
+                ActuatorService_EmergencyStop(
+                    (ActuatorOwner_t)request->payload[0]),
+                response);
+        case PROTOCOL_TYPE_ACTUATOR_SET_TARGET:
+        {
+            int16_t angle;
+            if ((request->payload_length != 3U) ||
+                !IsProtocolOwner(request->payload[0]))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 3U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            angle = (int16_t)Get16(&request->payload[1]);
+            if ((angle < -4500) || (angle > 4500))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildActuatorResult(
+                request,
+                ActuatorService_SetTargetAngle(
+                    (ActuatorOwner_t)request->payload[0], angle),
+                response);
+        }
+        case PROTOCOL_TYPE_ACTUATOR_SET_RAW_PULSE:
+        {
+            uint16_t pulse;
+            if ((request->payload_length != 3U) ||
+                !IsProtocolOwner(request->payload[0]))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 3U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            pulse = Get16(&request->payload[1]);
+            if ((pulse < 1000U) || (pulse > 2000U))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildActuatorResult(
+                request,
+                ActuatorService_SetRawPulse(
+                    (ActuatorOwner_t)request->payload[0], pulse),
+                response);
         }
         default:
             return BuildResponse(request,

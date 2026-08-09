@@ -70,11 +70,12 @@ Motion is exactly 45 bytes: `timestamp_ms u32`, `sequence u32`,
 `ax_mg`, `ay_mg`, `az_mg`, `gx_mdps`, `gy_mdps`, `gz_mdps`,
 `roll_cdeg`, and `pitch_cdeg`.
 
-Health is exactly 30 bytes: `uptime_ms u32`, `app_state u8`,
+Health is exactly 46 bytes: `uptime_ms u32`, `app_state u8`,
 `motion_state u8`, then u32 values `loop_count`, `i2c_error_count`,
 `invalid_sample_count`, `protocol_rx_frames`, `protocol_crc_errors`, and
-`rx_overflow_count`. Fields are serialized individually; C structure padding
-is never transmitted.
+`rx_overflow_count`, followed by the Sensor, Communication, Telemetry and
+Health task deadline-miss counters as four u32 values. Fields are serialized
+individually; C structure padding is never transmitted.
 
 ## UART modes and host commands
 

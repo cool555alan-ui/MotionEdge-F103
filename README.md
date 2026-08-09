@@ -143,6 +143,12 @@ Phase 8 keeps firmware at `0.6.0` and updates `motionctl` to `0.8.0`. It adds re
 
 The isolated development broker binds only to `127.0.0.1:1884`; TLS is disabled, so it is not a public-cloud or production deployment. Phase 8 is attitude accuracy and parameter tuning, not actuator control.
 
+## Phase 9A: safe PWM actuator control
+
+Phase 9A adds CubeMX TIM3_CH1/PA6 50 Hz PWM, explicit Arm, a single control Owner, integer angle mapping, pulse/angle limits, 500 µs/s slew, a 1000 ms command timeout, ESTOP, App fault interlock, actuator protocol/telemetry, `motionctl 0.9.0`, MQTT commands, and manual-only Node-RED controls. PWM remains disabled after every boot. The initial 1000/1500/2000 µs window is not a claim about mechanical travel and must be narrowed by real servo calibration.
+
+PID is intentionally absent until a real single-axis mechanism makes the servo change the MPU6500 platform angle and Phase 9A real-hardware validation passes. MQTT is not part of the real-time loop. See [Phase 9 actuator control](docs/phase-09-actuator-control.md), [calibration](docs/servo-pwm-calibration.md), and [safety model](docs/actuator-safety-model.md).
+
 ```powershell
 .\tools\start-phase07-broker.ps1
 .\tools\start-phase07-node-red.ps1

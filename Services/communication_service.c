@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #include "bsp_uart.h"
+#include "actuator_service.h"
 #include "byte_ring_buffer.h"
 #include "command_service.h"
 #include "config_service.h"
@@ -25,6 +26,7 @@ static CommunicationWriter_t s_writer;
 static CommunicationCommandSink_t s_command_sink;
 static uint32_t s_command_error_count;
 static uint32_t s_tx_error_count;
+static uint32_t s_deadline_miss_counts[4];
 
 static bool BspWriter(const uint8_t *data, size_t length)
 {
@@ -119,15 +121,30 @@ void CommunicationService_RunTelemetry(uint32_t now_ms,
                         s_telemetry_tx_buffer,
                         sizeof(s_telemetry_tx_buffer));
     }
+    {
+        ActuatorStatus_t actuator;
+        if (ActuatorService_GetStatus(now_ms, &actuator) &&
+            TelemetryService_BuildActuator(
+                &actuator, ++s_telemetry_sequence, &frame))
+        {
+            (void)SendFrame(&frame,
+                            s_telemetry_tx_buffer,
+                            sizeof(s_telemetry_tx_buffer));
+        }
+    }
     if ((s_telemetry_count % 10U) == 0U)
     {
         HealthSnapshot_t health;
         MotionServiceStats_t motion_stats;
         TelemetryProtocolStats_t protocol_stats = {
-            0U,
-            s_parser.successful_frames,
-            s_parser.crc_errors,
-            s_rx_buffer.overflow_count};
+            .i2c_error_count = 0U,
+            .protocol_rx_frames = s_parser.successful_frames,
+            .protocol_crc_errors = s_parser.crc_errors,
+            .rx_overflow_count = s_rx_buffer.overflow_count,
+            .sensor_deadline_miss = s_deadline_miss_counts[0],
+            .communication_deadline_miss = s_deadline_miss_counts[1],
+            .telemetry_deadline_miss = s_deadline_miss_counts[2],
+            .health_deadline_miss = s_deadline_miss_counts[3]};
         if (HealthService_GetSnapshot(&health) &&
             MotionService_GetStats(&motion_stats) &&
             TelemetryService_BuildHealth(&health,
@@ -160,6 +177,10 @@ bool CommunicationService_Init(uint32_t now_ms)
     s_command_sink = NULL;
     s_command_error_count = 0U;
     s_tx_error_count = 0U;
+    s_deadline_miss_counts[0] = 0U;
+    s_deadline_miss_counts[1] = 0U;
+    s_deadline_miss_counts[2] = 0U;
+    s_deadline_miss_counts[3] = 0U;
     s_initialized = true;
     return true;
 }
@@ -172,6 +193,19 @@ void CommunicationService_SetWriter(CommunicationWriter_t writer)
 void CommunicationService_SetCommandSink(CommunicationCommandSink_t sink)
 {
     s_command_sink = sink;
+}
+
+void CommunicationService_SetDeadlineMissCounts(const uint32_t counts[4])
+{
+    uint32_t index;
+    if (counts == NULL)
+    {
+        return;
+    }
+    for (index = 0U; index < 4U; ++index)
+    {
+        s_deadline_miss_counts[index] = counts[index];
+    }
 }
 
 void CommunicationService_RunRxOnce(void)
@@ -219,6 +253,7 @@ bool CommunicationService_IsProtocolMode(void)
 
 bool CommunicationService_GetStats(CommunicationServiceStats_t *stats)
 {
+    BspUartRxErrorStats_t uart_errors;
     if ((stats == NULL) || !s_initialized)
     {
         return false;
@@ -231,5 +266,19 @@ bool CommunicationService_GetStats(CommunicationServiceStats_t *stats)
     stats->command_error_count = s_command_error_count;
     stats->tx_error_count = s_tx_error_count;
     stats->uart_error_count = BspUart_GetRxErrorCount();
+    if (BspUart_GetRxErrorStats(&uart_errors))
+    {
+        stats->uart_parity_error_count = uart_errors.parity_count;
+        stats->uart_noise_error_count = uart_errors.noise_count;
+        stats->uart_framing_error_count = uart_errors.framing_count;
+        stats->uart_overrun_error_count = uart_errors.overrun_count;
+    }
+    else
+    {
+        stats->uart_parity_error_count = 0U;
+        stats->uart_noise_error_count = 0U;
+        stats->uart_framing_error_count = 0U;
+        stats->uart_overrun_error_count = 0U;
+    }
     return true;
 }

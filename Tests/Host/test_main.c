@@ -14,6 +14,9 @@ void TestMotionService_Run(TestContext_t *context);
 void TestCsvTelemetry_Run(TestContext_t *context);
 void TestProtocol_Run(TestContext_t *context);
 void TestRtosMonitor_Run(TestContext_t *context);
+void TestPwm_Run(TestContext_t *context);
+void TestServoActuator_Run(TestContext_t *context);
+void TestActuatorService_Run(TestContext_t *context);
 
 void Test_RecordAssertion(TestContext_t *context,
                           bool condition,
@@ -50,6 +53,9 @@ int main(void)
     TestCsvTelemetry_Run(&context);
     TestProtocol_Run(&context);
     TestRtosMonitor_Run(&context);
+    TestPwm_Run(&context);
+    TestServoActuator_Run(&context);
+    TestActuatorService_Run(&context);
 
     (void)printf("Host assertions: total=%u passed=%u failed=%u\n",
                  context.assertion_count,

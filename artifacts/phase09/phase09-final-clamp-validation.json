@@ -1,0 +1,29 @@
+{
+  "validation_date": "2026-08-09T16:59:00+08:00",
+  "port": "COM4",
+  "baud": 115200,
+  "initial_state": {
+    "mode": "DISABLED",
+    "armed": false,
+    "owner": "NONE",
+    "safe_min_us": 1450,
+    "safe_max_us": 1550,
+    "fault_count": 0
+  },
+  "limit_test": {
+    "requested_pulse_us": 2000,
+    "target_pulse_us": 1550,
+    "current_pulse_us": 1550,
+    "limit_count": 1,
+    "fault_count": 0,
+    "status": "PASS"
+  },
+  "final_state": {
+    "mode": "DISABLED",
+    "armed": false,
+    "owner": "NONE",
+    "estop_count": 1,
+    "fault_count": 0
+  },
+  "overall": "PASS"
+}

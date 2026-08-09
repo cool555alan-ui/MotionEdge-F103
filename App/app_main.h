@@ -15,6 +15,8 @@ bool App_Init(uint32_t now_ms);
 void App_SetUartWriter(AppUartWriter_t writer);
 /** SensorTask调用：推进扫描、采样、校准、滤波及姿态状态机。 */
 void App_SensorRunOnce(uint32_t now_ms);
+/** 在现有 100 Hz SensorTask 中执行限速和安全联锁，不创建额外任务。 */
+void App_ActuatorRunOnce(uint32_t now_ms);
 /** CommunicationTask调用：执行有界串口接收和Parser。 */
 void App_CommunicationRunOnce(uint32_t now_ms);
 /** SensorTask调用：处理从固定命令队列取得的请求。 */

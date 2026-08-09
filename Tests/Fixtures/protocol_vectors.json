@@ -45,6 +45,42 @@
     "valid": true
   },
   {
+    "name": "actuator_status",
+    "type": 9,
+    "flags": 0,
+    "sequence": 8193,
+    "payload_hex": "",
+    "frame_hex": "a55a010900012000003ff1",
+    "valid": true
+  },
+  {
+    "name": "actuator_arm_serial",
+    "type": 10,
+    "flags": 0,
+    "sequence": 8194,
+    "payload_hex": "02",
+    "frame_hex": "a55a010a0002200100021ce1",
+    "valid": true
+  },
+  {
+    "name": "actuator_target_10deg",
+    "type": 12,
+    "flags": 0,
+    "sequence": 8195,
+    "payload_hex": "02e803",
+    "frame_hex": "a55a010c000320030002e8032cff",
+    "valid": true
+  },
+  {
+    "name": "actuator_estop_mqtt",
+    "type": 14,
+    "flags": 0,
+    "sequence": 8196,
+    "payload_hex": "03",
+    "frame_hex": "a55a010e0004200100037efd",
+    "valid": true
+  },
+  {
     "name": "crc_error",
     "type": 1,
     "flags": 0,

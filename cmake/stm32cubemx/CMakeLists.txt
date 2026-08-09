@@ -25,7 +25,9 @@ set(MX_Application_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/gpio.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/freertos.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/dma.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/i2c.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/tim.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/usart.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/stm32f1xx_it.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../Src/stm32f1xx_hal_msp.c

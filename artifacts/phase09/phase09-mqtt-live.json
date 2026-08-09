@@ -1,0 +1,100 @@
+{
+  "tested_at": "2026-08-09T15:38:43+08:00",
+  "checks": {
+    "retained_rejected": "PASS",
+    "retained_not_executed": "PASS",
+    "duplicate_first_executed": "PASS",
+    "duplicate_response_cached": "PASS",
+    "duplicate_not_reexecuted": "PASS",
+    "node_red_motion_link": "PASS",
+    "node_red_invalid_json_zero": "PASS",
+    "node_red_schema_error_zero": "PASS"
+  },
+  "initial_estop_count": 4,
+  "after_retained_estop_count": 4,
+  "final_estop_count": 5,
+  "retained_response": {
+    "schema_version": 1,
+    "request_id": "737ad6fb-0b5e-4e0d-8159-78624125c22d",
+    "command": "actuator_estop",
+    "ok": false,
+    "result": null,
+    "error": "RETAINED_COMMAND_REJECTED",
+    "gateway_elapsed_ms": 0.1411,
+    "device_elapsed_ms": null,
+    "logical_attempts": 1,
+    "transport_attempts": 1,
+    "completed_at": "2026-08-09T07:38:44.168Z"
+  },
+  "duplicate_first_response": {
+    "schema_version": 1,
+    "request_id": "bb94ebb1-8d3f-4bac-8062-eb7592b285d9",
+    "command": "actuator_estop",
+    "ok": true,
+    "result": {
+      "accepted": true
+    },
+    "error": null,
+    "gateway_elapsed_ms": 93.5554,
+    "device_elapsed_ms": 93.3431,
+    "logical_attempts": 1,
+    "transport_attempts": 1,
+    "completed_at": "2026-08-09T07:38:46.955Z"
+  },
+  "duplicate_second_response": {
+    "schema_version": 1,
+    "request_id": "bb94ebb1-8d3f-4bac-8062-eb7592b285d9",
+    "command": "actuator_estop",
+    "ok": true,
+    "result": {
+      "accepted": true
+    },
+    "error": null,
+    "gateway_elapsed_ms": 93.5554,
+    "device_elapsed_ms": 93.3431,
+    "logical_attempts": 1,
+    "transport_attempts": 1,
+    "completed_at": "2026-08-09T07:38:46.955Z"
+  },
+  "node_red_before": {
+    "motion_received": 107,
+    "health_received": 11,
+    "duplicate_received": 0,
+    "invalid_json": 0,
+    "schema_error": 0,
+    "sequence_gap": 5,
+    "command_sent": 0,
+    "command_success": 6,
+    "command_timeout": 0,
+    "last_sequence": 2659,
+    "last_motion_unix_ms": 1786261073764,
+    "local_receive_latency_ms": {
+      "count": 107,
+      "p50": 2,
+      "p95": 2,
+      "max": 2
+    },
+    "note": "?????Broker????,??????????"
+  },
+  "node_red_after": {
+    "motion_received": 213,
+    "health_received": 22,
+    "duplicate_received": 0,
+    "invalid_json": 0,
+    "schema_error": 0,
+    "sequence_gap": 9,
+    "command_sent": 0,
+    "command_success": 10,
+    "command_timeout": 0,
+    "last_sequence": 8799,
+    "last_motion_unix_ms": 1786261135160,
+    "local_receive_latency_ms": {
+      "count": 213,
+      "p50": 1,
+      "p95": 2,
+      "max": 2
+    },
+    "note": "?????Broker????,??????????"
+  },
+  "passed": true
+}

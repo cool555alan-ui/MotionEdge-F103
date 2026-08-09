@@ -15,9 +15,9 @@ class StreamingSimulatedDevice(SimulatedDevice):
         super().__init__(); self._next_motion = time.monotonic(); self._motion_count = 0
 
     def _health_payload(self) -> bytes:
-        return struct.pack("<IBB6I", int(time.monotonic() * 1000) & 0xFFFFFFFF,
+        return struct.pack("<IBB10I", int(time.monotonic() * 1000) & 0xFFFFFFFF,
                            2, 2, self.motion_sequence, 0, 0,
-                           self.request_count, 0, 0)
+                           self.request_count, 0, 0, 0, 0, 0, 0)
 
     def read(self, size: int = 256) -> bytes:
         now = time.monotonic()

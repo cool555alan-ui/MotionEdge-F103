@@ -10,6 +10,12 @@ static void Put32(uint8_t *data, uint32_t value)
     data[3] = (uint8_t)(value >> 24U);
 }
 
+static void Put16(uint8_t *data, uint16_t value)
+{
+    data[0] = (uint8_t)value;
+    data[1] = (uint8_t)(value >> 8U);
+}
+
 bool TelemetryService_BuildMotion(const MotionFrame_t *motion,
                                   uint16_t sequence,
                                   ProtocolFrame_t *frame)
@@ -83,6 +89,44 @@ bool TelemetryService_BuildHealth(const HealthSnapshot_t *health,
     offset += 4U;
     Put32(&frame->payload[offset], protocol_stats->rx_overflow_count);
     offset += 4U;
+    Put32(&frame->payload[offset], protocol_stats->sensor_deadline_miss);
+    offset += 4U;
+    Put32(&frame->payload[offset], protocol_stats->communication_deadline_miss);
+    offset += 4U;
+    Put32(&frame->payload[offset], protocol_stats->telemetry_deadline_miss);
+    offset += 4U;
+    Put32(&frame->payload[offset], protocol_stats->health_deadline_miss);
+    offset += 4U;
     frame->payload_length = (uint16_t)offset;
     return offset == TELEMETRY_HEALTH_PAYLOAD_SIZE;
+}
+
+bool TelemetryService_BuildActuator(const ActuatorStatus_t *status,
+                                    uint16_t sequence,
+                                    ProtocolFrame_t *frame)
+{
+    size_t offset = 0U;
+
+    if ((status == NULL) || (frame == NULL)) { return false; }
+    *frame = (ProtocolFrame_t){0};
+    frame->version = PROTOCOL_VERSION;
+    frame->type = PROTOCOL_TYPE_ACTUATOR_TELEMETRY;
+    frame->sequence = sequence;
+    frame->payload[offset++] = (uint8_t)status->mode;
+    frame->payload[offset++] = (uint8_t)status->state;
+    frame->payload[offset++] = status->armed ? 1U : 0U;
+    frame->payload[offset++] = (uint8_t)status->owner;
+    Put16(&frame->payload[offset], (uint16_t)status->target_angle_cdeg); offset += 2U;
+    Put16(&frame->payload[offset], (uint16_t)status->current_angle_cdeg); offset += 2U;
+    Put16(&frame->payload[offset], status->target_pulse_us); offset += 2U;
+    Put16(&frame->payload[offset], status->current_pulse_us); offset += 2U;
+    Put16(&frame->payload[offset], status->safe_min_us); offset += 2U;
+    Put16(&frame->payload[offset], status->safe_max_us); offset += 2U;
+    Put32(&frame->payload[offset], status->command_age_ms); offset += 4U;
+    Put32(&frame->payload[offset], status->timeout_count); offset += 4U;
+    Put32(&frame->payload[offset], status->limit_count); offset += 4U;
+    Put32(&frame->payload[offset], status->fault_count); offset += 4U;
+    Put32(&frame->payload[offset], status->estop_count); offset += 4U;
+    frame->payload_length = (uint16_t)offset;
+    return offset == TELEMETRY_ACTUATOR_PAYLOAD_SIZE;
 }

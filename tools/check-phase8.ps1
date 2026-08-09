@@ -14,8 +14,9 @@ if($source-match'PASS\s*=|hardcoded.*PASS'){Write-Error 'Hard-coded result found
 if($source-notmatch'preserve_configuration'){Write-Error 'Configuration restoration missing';exit 7}
 $all=Get-Content -Raw -Encoding UTF8 (Join-Path $root 'host\motionctl\phase08_report.py')
 if($all-notmatch'absolute Yaw'-or$all-notmatch'uncertainty'){Write-Error 'Yaw/reference limitations missing';exit 8}
-$firmware=git -C $root diff --name-only HEAD -- Inc Src Services Devices Algorithms Core
-if($firmware){Write-Error 'Unexpected firmware changes or new RTOS work';exit 9}
+# 后续阶段可以新增执行器固件，但不得回改 Phase 8 已验证的姿态算法与运动管线。
+$firmware=git -C $root diff --name-only v0.8-attitude-characterized -- Algorithms/attitude_estimator.c Algorithms/low_pass_filter.c Services/motion_service.c
+if($firmware){Write-Error 'Phase 8 attitude pipeline changed after characterization';exit 9}
 $tracked=@(git -C $root ls-files 'artifacts/phase08/**/samples.csv' 'artifacts/phase08/**/*-raw.csv')
 if($tracked.Count){Write-Error 'Large raw Phase 8 data tracked';exit 10}
 Write-Host '[PASS] Phase 8 CLI, pure statistics, centralized weights, restoration, limitations and artifacts'

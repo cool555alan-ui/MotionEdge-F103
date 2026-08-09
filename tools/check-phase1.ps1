@@ -47,9 +47,12 @@ function Invoke-GitDiffCheck {
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
     [void]$process.Start()
-    $standardOutput = $process.StandardOutput.ReadToEnd()
-    $standardError = $process.StandardError.ReadToEnd()
+    # 同时排空stdout/stderr，避免大量Git行尾提示填满单个管道造成死锁。
+    $standardOutputTask = $process.StandardOutput.ReadToEndAsync()
+    $standardErrorTask = $process.StandardError.ReadToEndAsync()
     $process.WaitForExit()
+    $standardOutput = $standardOutputTask.Result
+    $standardError = $standardErrorTask.Result
 
     return [pscustomobject]@{
         ExitCode = $process.ExitCode
@@ -208,7 +211,30 @@ try {
         $(if ($trackedBuildFiles) { $trackedBuildFiles -join ', ' } else { '未跟踪' })
 
     $changedFiles = @(& git -C $ProjectRoot diff --name-only HEAD --)
+    $iocText = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'MotionEdge-F103.ioc')
+    $phase9CubeMxPwm = (($iocText -match 'PA6.Signal=S_TIM3_CH1') -and
+        ($iocText -match 'TIM3.Prescaler=71') -and ($iocText -match 'TIM3.Period=19999') -and
+        (Test-Path (Join-Path $ProjectRoot 'Src\tim.c')) -and
+        (Test-Path (Join-Path $ProjectRoot 'Inc\tim.h')))
+    $usartGeneratedText = Get-Content -Raw -Encoding UTF8 `
+        (Join-Path $ProjectRoot 'Src\usart.c')
+    $phase9CubeMxDma = (($iocText -match 'Dma\.USART1_RX\.0\.Instance=DMA1_Channel5') -and
+        ($iocText -match 'Dma\.USART1_RX\.0\.Mode=DMA_CIRCULAR') -and
+        ($usartGeneratedText -match 'hdma_usart1_rx\.Init\.Mode = DMA_CIRCULAR') -and
+        (Test-Path (Join-Path $ProjectRoot 'Src\dma.c')) -and
+        (Test-Path (Join-Path $ProjectRoot 'Inc\dma.h')))
+    $phase9GeneratedFiles = @('MotionEdge-F103.ioc', 'cmake/stm32cubemx/CMakeLists.txt')
+    $phase9DmaGeneratedFiles = @(
+        'Inc/stm32f1xx_hal_conf.h', 'Inc/stm32f1xx_it.h',
+        'Src/stm32f1xx_it.c', 'Src/usart.c'
+    )
     $forbiddenGeneratedChanges = @($changedFiles | Where-Object {
+            if ($phase9CubeMxPwm -and ($_ -in $phase9GeneratedFiles)) {
+                return $false
+            }
+            if ($phase9CubeMxDma -and ($_ -in $phase9DmaGeneratedFiles)) {
+                return $false
+            }
             if ($_ -in @('Src/freertos.c', 'Src/stm32f1xx_it.c',
                     'Inc/stm32f1xx_it.h')) {
                 return -not (Test-MainUserCodeDiff ($_ -replace '/', '\'))
@@ -223,8 +249,19 @@ try {
             else {
                 '未修改受保护生成文件'
             })
-    Add-Check 'main.c USER CODE 边界' (Test-MainUserCodeDiff $mainRelativePath) `
-        '变更仅位于 USER CODE 区域'
+    $mainDiff = (& git -C $ProjectRoot diff --unified=0 HEAD -- $mainRelativePath) -join "`n"
+    $phase9MainGenerated = $phase9CubeMxPwm -and $phase9CubeMxDma -and
+        ($mainDiff -match '\+#include "dma\.h"') -and
+        ($mainDiff -match '\+#include "tim\.h"') -and
+        ($mainDiff -match '\+\s*MX_DMA_Init\(\);') -and
+        ($mainDiff -match '\+\s*MX_TIM3_Init\(\);') -and
+        (@($mainDiff -split "`n" | Where-Object {
+            $_ -match '^\+(?!\+)' -and $_ -notmatch '^\+#include "(?:dma|tim)\.h"' -and
+            $_ -notmatch '^\+\s*MX_DMA_Init\(\);' -and
+            $_ -notmatch '^\+\s*MX_TIM3_Init\(\);'
+        }).Count -eq 0)
+    Add-Check 'main.c USER CODE 边界' ((Test-MainUserCodeDiff $mainRelativePath) -or $phase9MainGenerated) `
+        $(if ($phase9MainGenerated) { '仅含CubeMX生成的TIM3 include/init' } else { '变更仅位于 USER CODE 区域' })
 
     $diffCheck = Invoke-GitDiffCheck
     Add-Check 'Git 差异格式' ($diffCheck.ExitCode -eq 0) `

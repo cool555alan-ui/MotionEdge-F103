@@ -43,6 +43,9 @@ cmake-build-*/
 /artifacts/phase08/**/*transcript*.txt
 /artifacts/phase08/**/*terminal*.txt
 /artifacts/phase08/smoke-*/
+/artifacts/phase09/*.log
+/artifacts/phase09/*-raw.*
+/artifacts/phase09/soak-*.csv
 /artifacts/phase08/tuning/candidates/*invalid*/
 /artifacts/phase08/tuning/candidates-invalid*/
 /artifacts/phase07/final-validation/gateway.log

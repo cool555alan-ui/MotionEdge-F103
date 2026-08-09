@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "app_config.h"
+#include "actuator_service.h"
 #include "byte_ring_buffer.h"
 #include "command_service.h"
 #include "config_service.h"
@@ -12,6 +13,7 @@
 #include "protocol_parser.h"
 #include "telemetry_service.h"
 #include "test_support.h"
+#include "tim.h"
 
 static void BytesToHex(const uint8_t *data,
                        size_t length,
@@ -214,6 +216,16 @@ static void TestConfigCommandTelemetry(TestContext_t *context)
     ProtocolFrame_t response;
     MotionFrame_t motion = {0};
     ProtocolFrame_t telemetry;
+    ActuatorStatus_t actuator;
+
+    htim3.Instance = TIM3;
+    htim3.Init.Prescaler = 71U;
+    htim3.Init.Period = 19999U;
+    g_test_pclk1_hz = 36000000U;
+    g_test_rcc.CFGR = RCC_CFGR_PPRE1;
+    g_test_pwm_start_result = HAL_OK;
+    g_test_pwm_stop_result = HAL_OK;
+    TEST_EXPECT(context, ActuatorService_Init(0U));
 
     TEST_EXPECT(context, MotionService_Init(0U));
     TEST_EXPECT(context, CommandService_Init());
@@ -277,7 +289,15 @@ static void TestConfigCommandTelemetry(TestContext_t *context)
     {
         HealthSnapshot_t health;
         MotionServiceStats_t motion_stats;
-        TelemetryProtocolStats_t protocol_stats = {1U, 2U, 3U, 4U};
+        TelemetryProtocolStats_t protocol_stats = {
+            .i2c_error_count = 1U,
+            .protocol_rx_frames = 2U,
+            .protocol_crc_errors = 3U,
+            .rx_overflow_count = 4U,
+            .sensor_deadline_miss = 5U,
+            .communication_deadline_miss = 6U,
+            .telemetry_deadline_miss = 7U,
+            .health_deadline_miss = 8U};
         HealthService_Init(0U);
         HealthService_RecordLoop(25U);
         TEST_EXPECT(context, HealthService_GetSnapshot(&health));
@@ -292,7 +312,46 @@ static void TestConfigCommandTelemetry(TestContext_t *context)
         TEST_EXPECT(context,
                     telemetry.payload_length ==
                         TELEMETRY_HEALTH_PAYLOAD_SIZE);
+        TEST_EXPECT(context, telemetry.payload[30] == 5U);
+        TEST_EXPECT(context, telemetry.payload[34] == 6U);
+        TEST_EXPECT(context, telemetry.payload[38] == 7U);
+        TEST_EXPECT(context, telemetry.payload[42] == 8U);
     }
+
+    request.type = PROTOCOL_TYPE_ACTUATOR_GET_STATUS;
+    request.payload_length = 0U;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+    TEST_EXPECT(context, response.payload[4] == ACTUATOR_STATUS_PAYLOAD_SIZE);
+    request.type = PROTOCOL_TYPE_ACTUATOR_SET_TARGET;
+    request.payload_length = 3U;
+    request.payload[0] = ACTUATOR_OWNER_SERIAL;
+    request.payload[1] = 0U;
+    request.payload[2] = 0U;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_NOT_READY);
+    request.type = PROTOCOL_TYPE_ACTUATOR_ARM;
+    request.payload_length = 1U;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+    request.type = PROTOCOL_TYPE_ACTUATOR_SET_TARGET;
+    request.payload_length = 2U;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_INVALID_LENGTH);
+    request.payload_length = 3U;
+    request.payload[1] = 0x95U;
+    request.payload[2] = 0x11U;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_INVALID_VALUE);
+    request.type = PROTOCOL_TYPE_ACTUATOR_ESTOP;
+    request.payload_length = 1U;
+    request.payload[0] = ACTUATOR_OWNER_MQTT;
+    TEST_EXPECT(context, CommandService_Process(&request, &response));
+    TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+    TEST_EXPECT(context, ActuatorService_GetCurrentStatus(&actuator));
+    TEST_EXPECT(context, !actuator.armed && actuator.estop_count == 1U);
+    TEST_EXPECT(context, TelemetryService_BuildActuator(&actuator, 8U, &telemetry));
+    TEST_EXPECT(context, telemetry.payload_length == TELEMETRY_ACTUATOR_PAYLOAD_SIZE);
 }
 
 void TestProtocol_Run(TestContext_t *context)

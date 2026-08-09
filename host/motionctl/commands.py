@@ -5,7 +5,7 @@ from __future__ import annotations
 import struct
 from dataclasses import dataclass
 
-from .models import DeviceInfo, DeviceStatus, HealthSample, MotionSample
+from .models import ActuatorStatus, DeviceInfo, DeviceStatus, HealthSample, MotionSample
 
 PING = 0x01
 GET_DEVICE_INFO = 0x02
@@ -15,9 +15,20 @@ SET_CONFIG = 0x05
 START_CALIBRATION = 0x06
 SET_STREAM_STATE = 0x07
 GET_LATEST_MOTION = 0x08
+ACTUATOR_GET_STATUS = 0x09
+ACTUATOR_ARM = 0x0A
+ACTUATOR_DISARM = 0x0B
+ACTUATOR_SET_TARGET = 0x0C
+ACTUATOR_CENTER = 0x0D
+ACTUATOR_ESTOP = 0x0E
+ACTUATOR_SET_RAW_PULSE = 0x0F
 MOTION_TELEMETRY = 0x20
 HEALTH_TELEMETRY = 0x21
+ACTUATOR_TELEMETRY = 0x23
 COMMAND_RESPONSE = 0x80
+
+ACTUATOR_OWNER_SERIAL = 2
+ACTUATOR_OWNER_MQTT = 3
 
 STATUS_NAMES = {
     0: "OK",
@@ -110,9 +121,32 @@ def decode_motion(payload: bytes, host_monotonic_ns: int | None = None) -> Motio
 
 
 def decode_health(payload: bytes, host_monotonic_ns: int | None = None) -> HealthSample:
-    if len(payload) != 30:
-        raise ValueError("health payload must be 30 bytes")
+    if len(payload) != 46:
+        raise ValueError("health payload must be 46 bytes")
     uptime = struct.unpack_from("<I", payload, 0)[0]
     app, sensor = payload[4], payload[5]
-    values = struct.unpack_from("<6I", payload, 6)
+    values = struct.unpack_from("<10I", payload, 6)
     return HealthSample(uptime, app, sensor, *values, host_monotonic_ns)
+
+
+ACTUATOR_MODE_NAMES = {0: "DISABLED", 1: "MANUAL", 2: "ATTITUDE_HOLD"}
+ACTUATOR_STATE_NAMES = {0: "DISABLED", 1: "ARMING", 2: "READY",
+                        3: "MOVING", 4: "HOLDING", 5: "FAULT"}
+ACTUATOR_OWNER_NAMES = {0: "NONE", 1: "LOCAL", 2: "SERIAL",
+                        3: "MQTT", 4: "CONTROL_LOOP"}
+
+
+def decode_actuator_status(payload: bytes) -> ActuatorStatus:
+    if len(payload) != 36:
+        raise ValueError("actuator status payload must be 36 bytes")
+    mode, state, armed, owner, target_angle, current_angle, target_pulse, current_pulse, safe_min, safe_max, age, timeout, limit, fault, estop = struct.unpack(
+        "<BBBBhhHHHHIIIII", payload)
+    return ActuatorStatus(
+        mode, state, bool(armed), owner,
+        ACTUATOR_MODE_NAMES.get(mode, f"UNKNOWN({mode})"),
+        ACTUATOR_STATE_NAMES.get(state, f"UNKNOWN({state})"),
+        ACTUATOR_OWNER_NAMES.get(owner, f"UNKNOWN({owner})"),
+        target_angle, current_angle,
+        target_angle / 100.0, current_angle / 100.0,
+        target_pulse, current_pulse, safe_min, safe_max,
+        age, timeout, limit, fault, estop)

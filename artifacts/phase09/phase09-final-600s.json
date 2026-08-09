@@ -1,0 +1,166 @@
+{
+  "started_at": "2026-08-09T15:26:57+08:00",
+  "completed_at": "2026-08-09T15:37:07+08:00",
+  "duration_s": 600.0,
+  "soak": {
+    "counts": {
+      "motion": 4711,
+      "actuator": 4711,
+      "health": 452
+    },
+    "motion_frames": 4711,
+    "estimated_motion_gaps": 1289,
+    "app_fault_seen": false,
+    "crc_errors": 0,
+    "parser_errors": 0,
+    "deadline_first": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "deadline_last": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "deadline_delta": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "final_actuator": {
+      "mode_raw": 1,
+      "state_raw": 4,
+      "armed": true,
+      "owner_raw": 2,
+      "mode": "MANUAL",
+      "state": "HOLDING",
+      "owner": "SERIAL",
+      "target_angle_cdeg": 0,
+      "current_angle_cdeg": 0,
+      "target_angle_deg": 0.0,
+      "current_angle_deg": 0.0,
+      "target_pulse_us": 1500,
+      "current_pulse_us": 1500,
+      "safe_min_us": 1000,
+      "safe_max_us": 2000,
+      "command_age_ms": 300,
+      "timeout_count": 0,
+      "limit_count": 0,
+      "fault_count": 0,
+      "estop_count": 3
+    }
+  },
+  "rtos_before": {
+    "run": [
+      16102,
+      80508,
+      1611,
+      161
+    ],
+    "miss": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "heap": [
+      3064,
+      2440
+    ],
+    "stack": [
+      448,
+      576,
+      168,
+      488
+    ],
+    "comm": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "uart": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "rtos_after": {
+    "run": [
+      76702,
+      383508,
+      7671,
+      767
+    ],
+    "miss": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "heap": [
+      3064,
+      2440
+    ],
+    "stack": [
+      448,
+      576,
+      168,
+      488
+    ],
+    "comm": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "uart": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "run_delta": [
+    60600,
+    303000,
+    6060,
+    606
+  ],
+  "deadline_delta": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "comm_delta": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "uart_delta": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "binary_deadline_delta": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "passed": true
+}

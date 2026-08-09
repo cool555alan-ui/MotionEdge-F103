@@ -5,22 +5,72 @@
 #include "app_config.h"
 #include "usart.h"
 
+#define BSP_UART_RX_DMA_CAPACITY 512U
+
 static bool s_uart_ready = false;
-#define BSP_UART_RX_CAPACITY 64U
-static uint8_t s_rx_storage[BSP_UART_RX_CAPACITY];
-static volatile uint16_t s_rx_head;
-static volatile uint16_t s_rx_tail;
+static uint8_t s_rx_dma_storage[BSP_UART_RX_DMA_CAPACITY];
+static uint16_t s_rx_dma_read_index;
+static uint16_t s_rx_dma_last_write_index;
+static uint32_t s_rx_dma_pending_count;
 static volatile uint32_t s_rx_overflow_count;
 static volatile uint32_t s_rx_error_count;
-static uint8_t s_rx_byte;
+static volatile uint32_t s_rx_parity_error_count;
+static volatile uint32_t s_rx_noise_error_count;
+static volatile uint32_t s_rx_framing_error_count;
+static volatile uint32_t s_rx_overrun_error_count;
 
-static void StartReceiveInterrupt(void)
+static bool StartRxDma(void)
 {
-    HAL_StatusTypeDef status = HAL_UART_Receive_IT(&huart1, &s_rx_byte, 1U);
-
-    if ((status != HAL_OK) && (huart1.RxState != HAL_UART_STATE_BUSY_RX))
+    if ((huart1.hdmarx == NULL) ||
+        (huart1.hdmarx->Init.Mode != DMA_CIRCULAR) ||
+        (HAL_UART_Receive_DMA(&huart1,
+                              s_rx_dma_storage,
+                              BSP_UART_RX_DMA_CAPACITY) != HAL_OK))
     {
-        s_uart_ready = false;
+        return false;
+    }
+
+    s_rx_dma_read_index = 0U;
+    s_rx_dma_last_write_index = 0U;
+    s_rx_dma_pending_count = 0U;
+    return true;
+}
+
+static void RefreshRxDmaPosition(void)
+{
+    uint16_t write_index;
+    uint32_t new_bytes;
+
+    write_index = (uint16_t)(BSP_UART_RX_DMA_CAPACITY -
+                             __HAL_DMA_GET_COUNTER(huart1.hdmarx));
+    if (write_index >= BSP_UART_RX_DMA_CAPACITY)
+    {
+        write_index = 0U;
+    }
+
+    if (write_index >= s_rx_dma_last_write_index)
+    {
+        new_bytes = (uint32_t)(write_index - s_rx_dma_last_write_index);
+    }
+    else
+    {
+        new_bytes = (uint32_t)BSP_UART_RX_DMA_CAPACITY -
+                    s_rx_dma_last_write_index + write_index;
+    }
+    s_rx_dma_last_write_index = write_index;
+
+    if (new_bytes > ((uint32_t)BSP_UART_RX_DMA_CAPACITY - s_rx_dma_pending_count))
+    {
+        uint32_t lost = new_bytes -
+                        ((uint32_t)BSP_UART_RX_DMA_CAPACITY - s_rx_dma_pending_count);
+        s_rx_overflow_count += lost;
+        s_rx_dma_read_index = (uint16_t)((s_rx_dma_read_index + lost) %
+                                         BSP_UART_RX_DMA_CAPACITY);
+        s_rx_dma_pending_count = BSP_UART_RX_DMA_CAPACITY;
+    }
+    else
+    {
+        s_rx_dma_pending_count += new_bytes;
     }
 }
 
@@ -32,19 +82,24 @@ BspUartStatus_t BspUart_Init(void)
         return BSP_UART_ERROR_NOT_READY;
     }
 
-    s_rx_head = 0U;
-    s_rx_tail = 0U;
     s_rx_overflow_count = 0U;
     s_rx_error_count = 0U;
-    s_uart_ready = true;
-    /* 接收ISR不调用RTOS API，优先级4可避免被FreeRTOS临界区屏蔽而产生ORE。 */
-    HAL_NVIC_SetPriority(USART1_IRQn, 4U, 0U);
-    HAL_NVIC_EnableIRQ(USART1_IRQn);
-    StartReceiveInterrupt();
-    if (!s_uart_ready)
+    s_rx_parity_error_count = 0U;
+    s_rx_noise_error_count = 0U;
+    s_rx_framing_error_count = 0U;
+    s_rx_overrun_error_count = 0U;
+
+    /* USART1 RX由循环DMA持续搬运，避免RTOS运行时逐字节中断造成接收溢出。 */
+    if (!StartRxDma())
     {
+        s_uart_ready = false;
         return BSP_UART_ERROR_HAL;
     }
+
+    /* USART中断仅处理线路错误；普通接收字节不再进入RXNE中断。 */
+    HAL_NVIC_SetPriority(USART1_IRQn, 4U, 0U);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
+    s_uart_ready = true;
     return BSP_UART_OK;
 }
 
@@ -69,7 +124,7 @@ BspUartStatus_t BspUart_Write(const uint8_t *data, size_t length)
         return BSP_UART_ERROR_INVALID_ARG;
     }
 
-    /* The upper bound check makes the conversion to the HAL length type safe. */
+    /* 长度上限检查保证转换为HAL长度类型时不会截断。 */
     hal_status = HAL_UART_Transmit(&huart1, data, (uint16_t)length, APP_UART_TIMEOUT_MS);
     switch (hal_status)
     {
@@ -91,22 +146,23 @@ bool BspUart_IsReady(void)
 
 BspUartStatus_t BspUart_TryReadByte(uint8_t *byte, bool *received)
 {
-    uint16_t tail;
-
     if ((byte == NULL) || (received == NULL))
     {
         return BSP_UART_ERROR_INVALID_ARG;
     }
     *received = false;
-    if (!s_uart_ready)
+    if (!s_uart_ready || (huart1.hdmarx == NULL))
     {
         return BSP_UART_ERROR_NOT_READY;
     }
-    tail = s_rx_tail;
-    if (tail != s_rx_head)
+
+    RefreshRxDmaPosition();
+    if (s_rx_dma_pending_count != 0U)
     {
-        *byte = s_rx_storage[tail];
-        s_rx_tail = (uint16_t)((tail + 1U) % BSP_UART_RX_CAPACITY);
+        *byte = s_rx_dma_storage[s_rx_dma_read_index];
+        s_rx_dma_read_index = (uint16_t)((s_rx_dma_read_index + 1U) %
+                                         BSP_UART_RX_DMA_CAPACITY);
+        --s_rx_dma_pending_count;
         *received = true;
     }
     return BSP_UART_OK;
@@ -115,6 +171,41 @@ BspUartStatus_t BspUart_TryReadByte(uint8_t *byte, bool *received)
 void BspUart_IrqHandler(void)
 {
     HAL_UART_IRQHandler(&huart1);
+}
+
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+{
+    uint32_t errors;
+
+    if ((huart == NULL) || (huart->Instance != USART1))
+    {
+        return;
+    }
+
+    errors = huart->ErrorCode;
+    ++s_rx_error_count;
+    if ((errors & HAL_UART_ERROR_PE) != 0U)
+    {
+        ++s_rx_parity_error_count;
+    }
+    if ((errors & HAL_UART_ERROR_NE) != 0U)
+    {
+        ++s_rx_noise_error_count;
+    }
+    if ((errors & HAL_UART_ERROR_FE) != 0U)
+    {
+        ++s_rx_framing_error_count;
+    }
+    if ((errors & HAL_UART_ERROR_ORE) != 0U)
+    {
+        ++s_rx_overrun_error_count;
+    }
+
+    /* HAL在DMA接收错误后会中止通道；立即恢复循环接收，避免链路永久失效。 */
+    if (!StartRxDma())
+    {
+        s_uart_ready = false;
+    }
 }
 
 uint32_t BspUart_GetRxOverflowCount(void)
@@ -127,39 +218,15 @@ uint32_t BspUart_GetRxErrorCount(void)
     return s_rx_error_count;
 }
 
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+bool BspUart_GetRxErrorStats(BspUartRxErrorStats_t *stats)
 {
-    if ((huart != NULL) && (huart->Instance == USART1))
+    if (stats == NULL)
     {
-        uint16_t next = (uint16_t)((s_rx_head + 1U) % BSP_UART_RX_CAPACITY);
-        if (next == s_rx_tail)
-        {
-            ++s_rx_overflow_count;
-        }
-        else
-        {
-            s_rx_storage[s_rx_head] = s_rx_byte;
-            s_rx_head = next;
-        }
-        StartReceiveInterrupt();
+        return false;
     }
-}
-
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
-    if ((huart != NULL) && (huart->Instance == USART1))
-    {
-        ++s_rx_error_count;
-        /*
-         * HAL对噪声/帧错误保持当前中断接收为BUSY，仅ORE会结束接收。
-         * 只有接收已经回到READY时才重新挂载，避免把合法HAL_BUSY误判为永久故障。
-         */
-        /* F1通过依次读取SR和DR清除PE/FE/NE/ORE，避免错误中断反复进入。 */
-        __HAL_UART_CLEAR_PEFLAG(huart);
-        /* ORE属于阻塞错误，HAL已结束接收；FE/NE保持BUSY时无需中断当前接收。 */
-        if (huart->RxState == HAL_UART_STATE_READY)
-        {
-            StartReceiveInterrupt();
-        }
-    }
+    stats->parity_count = s_rx_parity_error_count;
+    stats->noise_count = s_rx_noise_error_count;
+    stats->framing_count = s_rx_framing_error_count;
+    stats->overrun_count = s_rx_overrun_error_count;
+    return true;
 }

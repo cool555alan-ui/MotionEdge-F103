@@ -1,0 +1,58 @@
+{
+  "validation_date": "2026-08-09T16:59:00+08:00",
+  "firmware_commit": "ad4410fae0eb9f2aa1c871ca81dd3b102f47475b (dirty Phase 9 worktree)",
+  "firmware_version": "0.9.0",
+  "hardware": {
+    "mcu": "STM32F103C8T6",
+    "imu": "MPU6500",
+    "servo": "SG90",
+    "servo_supply": "external regulated 5 V, common GND",
+    "pwm": "TIM3_CH1 PA6, 50 Hz, PSC=71, ARR=19999",
+    "serial": "COM4 115200 8N1",
+    "stlink": "SN=37FF71064E573436F8051F43 FW=V2J37S7 voltage=3.33V device_id=0x410"
+  },
+  "build": {
+    "debug": {"warnings": 0, "flash_bytes": 51920, "ram_bytes": 17160},
+    "release": {"warnings": 0, "flash_bytes": 45628, "ram_bytes": 17160},
+    "c_assertions": "539/539",
+    "python_tests": "113/113",
+    "phase_checks": "Phase 1-9 PASS",
+    "git_diff_check": "PASS"
+  },
+  "servo_calibration": {
+    "measured_conservative_min_us": 1400,
+    "center_us": 1500,
+    "measured_conservative_max_us": 1600,
+    "formal_safe_min_us": 1450,
+    "formal_safe_max_us": 1550,
+    "margin_each_side_us": 50,
+    "status": "PASS",
+    "limitation": "Not a mechanical end-stop or externally measured angle calibration"
+  },
+  "runtime_600s": {
+    "status": "PASS",
+    "motion_frames_directly_counted": 4711,
+    "actuator_frames_directly_counted": 4711,
+    "health_frames_directly_counted": 452,
+    "deadline_delta": [0, 0, 0, 0],
+    "uart_crc_parser_delta": [0, 0, 0],
+    "application_fault_seen": false,
+    "actuator_fault_count": 0,
+    "minimum_stack_bytes": [448, 576, 168, 488],
+    "heap_bytes": [3064, 2440]
+  },
+  "mqtt": {
+    "retained_rejected": "PASS",
+    "duplicate_request_suppressed": "PASS",
+    "node_red_contiguous_motion_frames": 52,
+    "node_red_sequence_gaps": 0,
+    "node_red_invalid_json": 0,
+    "node_red_schema_errors": 0,
+    "latency_p95_ms": 1
+  },
+  "phase9a": "PASS",
+  "phase9b": "NOT_TESTED",
+  "pwm_electrical_jitter": "NOT_TESTED",
+  "overcurrent": "NOT_AVAILABLE",
+  "next_stage": "Phase 9B only"
+}

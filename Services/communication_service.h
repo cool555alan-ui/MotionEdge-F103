@@ -20,6 +20,10 @@ typedef struct
     uint32_t command_error_count;
     uint32_t tx_error_count;
     uint32_t uart_error_count;
+    uint32_t uart_parity_error_count;
+    uint32_t uart_noise_error_count;
+    uint32_t uart_framing_error_count;
+    uint32_t uart_overrun_error_count;
 } CommunicationServiceStats_t;
 
 /** 初始化固定RX缓冲、Parser、命令服务和遥测序号。 */
@@ -28,6 +32,8 @@ bool CommunicationService_Init(uint32_t now_ms);
 void CommunicationService_SetWriter(CommunicationWriter_t writer);
 /** 注入已校验帧的任务间投递入口；NULL时保持裸机直接分发。 */
 void CommunicationService_SetCommandSink(CommunicationCommandSink_t sink);
+/** 更新四个RTOS任务的deadline累计值，供HEALTH二进制遥测验收使用。 */
+void CommunicationService_SetDeadlineMissCounts(const uint32_t counts[4]);
 /** 按固定字节预算处理UART接收、命令响应和二进制遥测。 */
 void CommunicationService_RunOnce(uint32_t now_ms);
 /** 仅执行有界UART接收和协议解析。 */

@@ -102,11 +102,21 @@ try {
     $uart = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'BSP\bsp_uart.c')
     $uartIrq = Get-Content -Raw -Encoding UTF8 `
         (Join-Path $ProjectRoot 'Src\stm32f1xx_it.c')
-    Add-Check 'UART receive bounded' `
-        (($uart -match 'HAL_UART_Receive_IT\(&huart1,\s*&s_rx_byte,\s*1U\)') -and
-         ($uart -match 'BSP_UART_RX_CAPACITY') -and
-         ($uartIrq -match 'BspUart_IrqHandler\s*\(')) `
-        'interrupt receive with fixed ring buffer and USART1 IRQ'
+    # 固定缓冲区的中断或循环DMA接收都属于有界实现。
+    $singleByteReceive = [bool]($uart -match 'HAL_UART_Receive_IT\(&huart1,\s*&s_rx_byte,\s*1U\)')
+    $chunkedIdleReceive = [bool](($uart -match 'HAL_UARTEx_ReceiveToIdle_IT\s*\(') -and ($uart -match 'BSP_UART_RX_CHUNK_SIZE'))
+    $directRingReceive = [bool](($uart -match 'USART_SR_RXNE') -and ($uart -match 'PushRxByte\s*\('))
+    $ioc = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'MotionEdge-F103.ioc')
+    $circularDmaReceive = [bool](($uart -match 'HAL_UART_Receive_DMA\s*\(') -and
+        ($uart -match 'BSP_UART_RX_DMA_CAPACITY') -and
+        ($ioc -match 'Dma\.USART1_RX\.0\.Mode=DMA_CIRCULAR'))
+    $boundedReceive = [bool]($singleByteReceive -or $chunkedIdleReceive -or
+        $directRingReceive -or $circularDmaReceive)
+    $uartReceivePassed = ($boundedReceive -and
+                          ($uart -match 'BSP_UART_RX_(?:DMA_)?CAPACITY') -and
+                          ($uartIrq -match 'BspUart_IrqHandler\s*\('))
+    Add-Check -Name 'UART receive bounded' -Passed $uartReceivePassed `
+        -Detail 'fixed receive buffer with USART1 error handling'
 
     $app = Get-Content -Raw -Encoding UTF8 (Join-Path $ProjectRoot 'App\app_main.c')
     Add-Check 'Binary mode isolated' `

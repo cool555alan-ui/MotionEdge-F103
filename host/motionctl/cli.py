@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from . import __version__, commands
+from .actuator_cli import add_actuator_parser, run_actuator
 from .capture import capture_session, load_telemetry
 from .commands import RuntimeConfig, decode_device_info, decode_motion, decode_status
 from .device import DeviceClient
@@ -63,6 +64,7 @@ def build_parser() -> argparse.ArgumentParser:
     subs.add_parser("simulate-device"); subs.add_parser("self-test")
     add_gateway_parser(subs)
     add_phase08_parsers(subs)
+    add_actuator_parser(subs, _connection)
     return parser
 
 
@@ -181,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
             result = generate_report(args.session, args.output); print(args.output / "report.md")
             return EXIT_SUCCESS if result["validation"]["conclusion"] in ("PASS", "WARN") else EXIT_REPORT
         with _client(args) as client:
+            if args.command == "actuator":
+                _print(run_actuator(args, client)); return EXIT_SUCCESS
             if args.command == "ping":
                 if args.count <= 0: raise ValueError("--count must be positive")
                 for _ in range(args.count): client.request(commands.PING)

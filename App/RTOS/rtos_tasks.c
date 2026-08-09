@@ -124,6 +124,7 @@ static void SensorTask(void *argument)
             }
             (void)App_ProcessCommand(&request);
         }
+        App_ActuatorRunOnce(start);
         got_frame = MotionService_GetLatestFrame(&frame);
         if (got_frame &&
             (!has_published || (frame.sequence != last_published_sequence)))
@@ -171,6 +172,7 @@ static void TelemetryTask(void *argument)
         MotionFrame_t frame;
         uint32_t start = osKernelGetTickCount();
         const MotionFrame_t *snapshot = NULL;
+        RtosMonitorSnapshot_t monitor;
 
         if (RtosObjects_GetMotionSnapshot(&frame) &&
             (!has_sequence || (frame.sequence != last_sequence)))
@@ -178,6 +180,15 @@ static void TelemetryTask(void *argument)
             snapshot = &frame;
             last_sequence = frame.sequence;
             has_sequence = true;
+        }
+        if (RtosMonitor_GetSnapshot(&monitor))
+        {
+            uint32_t misses[4] = {
+                monitor.tasks[RTOS_TASK_SENSOR].deadline_miss_count,
+                monitor.tasks[RTOS_TASK_COMMUNICATION].deadline_miss_count,
+                monitor.tasks[RTOS_TASK_TELEMETRY].deadline_miss_count,
+                monitor.tasks[RTOS_TASK_HEALTH].deadline_miss_count};
+            CommunicationService_SetDeadlineMissCounts(misses);
         }
         App_TelemetryRunOnce(start, snapshot);
         RecordTaskRun(RTOS_TASK_TELEMETRY,
@@ -345,13 +356,19 @@ static void HealthTask(void *argument)
                         LOG_LEVEL_INFO,
                         "RTOS-COMM",
                         "rx=%" PRIu32 " crc=%" PRIu32 " parser=%" PRIu32
-                        " command=%" PRIu32 " tx=%" PRIu32 " uart=%" PRIu32,
+                        " command=%" PRIu32 " tx=%" PRIu32 " uart=%" PRIu32
+                        " pe/ne/fe/ore=%" PRIu32 "/%" PRIu32 "/%" PRIu32
+                        "/%" PRIu32,
                         communication_stats.rx_overflow_count,
                         communication_stats.crc_error_count,
                         communication_stats.parser_error_count,
                         communication_stats.command_error_count,
                         communication_stats.tx_error_count,
-                        communication_stats.uart_error_count);
+                        communication_stats.uart_error_count,
+                        communication_stats.uart_parity_error_count,
+                        communication_stats.uart_noise_error_count,
+                        communication_stats.uart_framing_error_count,
+                        communication_stats.uart_overrun_error_count);
                 }
             }
         }

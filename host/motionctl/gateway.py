@@ -12,7 +12,8 @@ from dataclasses import asdict
 from typing import Any, Callable
 
 from . import __version__, commands
-from .commands import RuntimeConfig, decode_device_info, decode_health, decode_motion, decode_status
+from .commands import (RuntimeConfig, decode_actuator_status, decode_device_info,
+                       decode_health, decode_motion, decode_status)
 from .device import DeviceClient
 from .gateway_config import GatewayConfig
 from .gateway_metrics import GatewayMetrics
@@ -28,7 +29,13 @@ COMMAND_IDS = {"ping": commands.PING, "get_device_info": commands.GET_DEVICE_INF
                "get_status": commands.GET_STATUS, "get_config": commands.GET_CONFIG,
                "set_config": commands.SET_CONFIG, "start_calibration": commands.START_CALIBRATION,
                "set_stream_state": commands.SET_STREAM_STATE,
-               "get_latest_motion": commands.GET_LATEST_MOTION}
+               "get_latest_motion": commands.GET_LATEST_MOTION,
+               "actuator_status": commands.ACTUATOR_GET_STATUS,
+               "actuator_arm": commands.ACTUATOR_ARM,
+               "actuator_disarm": commands.ACTUATOR_DISARM,
+               "actuator_center": commands.ACTUATOR_CENTER,
+               "actuator_set_target": commands.ACTUATOR_SET_TARGET,
+               "actuator_estop": commands.ACTUATOR_ESTOP}
 
 
 class CommandResultCache:
@@ -93,6 +100,7 @@ class Gateway:
         self._info = None
         self._status = None
         self._config = None
+        self._actuator_status = None
         self._last_motion_sequence: int | None = None
         self._original_stream: bool | None = None
         self._mqtt = mqtt_factory(config.mqtt,
@@ -127,6 +135,8 @@ class Gateway:
         self._config = RuntimeConfig.unpack(self._device.request(commands.GET_CONFIG))
         self._status = decode_status(self._device.request(commands.GET_STATUS),
                                      stream_enabled=self._config.telemetry_enabled)
+        self._actuator_status = decode_actuator_status(
+            self._device.request(commands.ACTUATOR_GET_STATUS))
         if self._original_stream is None: self._original_stream = self._config.telemetry_enabled
         if not self._config.telemetry_enabled:
             self._device.request(commands.SET_STREAM_STATE, b"\1", retry=False)
@@ -150,6 +160,7 @@ class Gateway:
                 "stream_enabled": self._config.telemetry_enabled if self._config else None,
                 "uptime_ms": self._status.uptime_ms if self._status else None,
                 "last_motion_sequence": self._last_motion_sequence,
+                "actuator": stable_dict(self._actuator_status) if self._actuator_status else None,
                 "error_counts": self._status.protocol_errors if self._status else None,
                 "received_at": utc_iso(), "published_at": utc_iso()}
 
@@ -192,6 +203,14 @@ class Gateway:
         if self._publish("health", value): self.metrics.increment("health_published")
         else: self.metrics.increment("telemetry_dropped")
 
+    def _publish_actuator(self, frame) -> None:
+        self._actuator_status = decode_actuator_status(frame.payload)
+        value = {"schema_version": SCHEMA_VERSION,
+                 "device_id": self.config.gateway.device_id,
+                 **stable_dict(self._actuator_status), "published_at": utc_iso()}
+        if not self._publish("actuator", value):
+            self.metrics.increment("telemetry_dropped")
+
     def _execute_device_command(self, request: MqttCommand) -> tuple[Any, float, int]:
         if self._device is None: raise ConnectionError("serial device offline")
         payload = b""
@@ -206,6 +225,19 @@ class Gateway:
             config = RuntimeConfig(**{**asdict(self._config), **request.params})
             if not config.validate(): raise ValueError("invalid RuntimeConfig")
             payload = config.pack()
+        elif request.command in {"actuator_arm", "actuator_disarm",
+                                 "actuator_center", "actuator_estop"}:
+            if request.params: raise ValueError("this command does not accept params")
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,))
+        elif request.command == "actuator_set_target":
+            import struct
+            if set(request.params) != {"angle_deg"}:
+                raise ValueError("actuator_set_target requires angle_deg")
+            angle = request.params["angle_deg"]
+            if isinstance(angle, bool) or not isinstance(angle, (int, float)) or not -45.0 <= angle <= 45.0:
+                raise ValueError("angle_deg must be a finite number within -45..45")
+            payload = struct.pack("<Bh", commands.ACTUATOR_OWNER_MQTT,
+                                  round(angle * 100.0))
         elif request.params:
             raise ValueError("this command does not accept params")
         before = len(self._device.attempt_results); started = time.monotonic_ns()
@@ -217,6 +249,7 @@ class Gateway:
         elif request.command == "get_status": result = stable_dict(decode_status(data))
         elif request.command == "get_config": result = stable_dict(RuntimeConfig.unpack(data))
         elif request.command == "get_latest_motion": result = stable_dict(decode_motion(data))
+        elif request.command == "actuator_status": result = stable_dict(decode_actuator_status(data))
         else: result = {"accepted": True}
         return result, elapsed, max(1, attempts)
 
@@ -290,6 +323,7 @@ class Gateway:
                             self.metrics.increment("device_frames")
                             if frame.type == commands.MOTION_TELEMETRY and self.config.publish.motion_enabled: self._publish_motion(frame)
                             elif frame.type == commands.HEALTH_TELEMETRY and self.config.publish.health_enabled: self._publish_health(frame)
+                            elif frame.type == commands.ACTUATOR_TELEMETRY: self._publish_actuator(frame)
                     except Exception as exc:
                         self._last_error = str(exc); self._device.close(); self._device = None
                         self._publish("device_availability", "offline")
