@@ -62,6 +62,10 @@ ActuatorResult_t ActuatorService_SetTargetAngle(ActuatorOwner_t owner,
                                                 int16_t angle_cdeg);
 ActuatorResult_t ActuatorService_SetRawPulse(ActuatorOwner_t owner,
                                              uint16_t pulse_us);
+/** 将已Arm的手动Owner安全移交给100 Hz本地控制器。 */
+ActuatorResult_t ActuatorService_BeginAttitudeControl(ActuatorOwner_t owner);
+/** 仅允许CONTROL_LOOP Owner提交脉宽，仍经过舵机安全限幅与Slew。 */
+ActuatorResult_t ActuatorService_SetControlPulse(uint16_t pulse_us);
 ActuatorResult_t ActuatorService_Center(ActuatorOwner_t owner);
 ActuatorResult_t ActuatorService_EmergencyStop(ActuatorOwner_t owner);
 void ActuatorService_Update(uint32_t now_ms,

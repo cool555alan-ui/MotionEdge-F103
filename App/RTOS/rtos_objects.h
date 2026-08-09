@@ -9,7 +9,8 @@
 #include "protocol_frame.h"
 
 #define RTOS_COMMAND_QUEUE_CAPACITY 8U
-#define RTOS_COMMAND_MAX_PAYLOAD_SIZE 10U
+/* CONTROL_SET_PID 是当前最长写命令：owner(1) + PID配置(19)。 */
+#define RTOS_COMMAND_MAX_PAYLOAD_SIZE 20U
 
 #define RTOS_EVENT_SYSTEM_READY (1UL << 0)
 #define RTOS_EVENT_SENSOR_ONLINE (1UL << 1)

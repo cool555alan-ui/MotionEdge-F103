@@ -1,0 +1,131 @@
+﻿=== injection ===
+      -------------------------------------------------------------------
+                       STM32CubeProgrammer v2.23.0
+      -------------------------------------------------------------------
+
+ST-LINK SN  : 37FF71064E573436F8051F43
+ST-LINK FW  : V2J37S7
+Board       : --
+Voltage     : 3.33V
+SWD freq    : 950 KHz
+Connect mode: Hot Plug
+Reset mode  : Software reset
+Device ID   : 0x410
+Revision ID : Rev A
+Device name : STM32F101/F102/F103 Medium-density
+NVM size    : 64 KBytes
+Device type : MCU
+Device CPU  : Cortex-M3
+BL Version  : --
+
+
+Downloading 8-bit data...
+
+�������������������������������������������������� 0%
+�������������������������������������������������� 100%
+Downloading 8-bit data done successfully
+=== before ===
+{
+  "mode_raw": 1,
+  "axis_raw": 1,
+  "direction_raw": 0,
+  "integral_mode_raw": 0,
+  "enabled": true,
+  "active": true,
+  "saturated": false,
+  "in_deadband": true,
+  "last_fault_raw": 0,
+  "mode": "PID_ATTITUDE",
+  "axis": "PITCH",
+  "direction": "NORMAL",
+  "integral_mode": "DISABLED",
+  "last_fault": "NONE",
+  "zero_angle_cdeg": 1,
+  "measured_angle_cdeg": 1,
+  "relative_angle_cdeg": 0,
+  "effective_error_cdeg": 0,
+  "deadband_cdeg": 100,
+  "kp": 1.0,
+  "ki": 0.0,
+  "kd": 0.05,
+  "p_term_us": 0.0,
+  "i_term_us": 0.0,
+  "d_term_us": 0.0,
+  "output_us": 0,
+  "requested_pulse_us": 1500,
+  "actual_pulse_us": 1500,
+  "motion_age_ms": 4294967294,
+  "update_count": 35,
+  "invalid_dt_count": 0,
+  "nonfinite_input_count": 0,
+  "stale_motion_count": 0,
+  "integrator_saturation_count": 0,
+  "target_limit_count": 0,
+  "fault_count": 0,
+  "deadband_entry_count": 0,
+  "deadband_exit_count": 0
+}
+=== after ===
+{
+  "mode_raw": 0,
+  "axis_raw": 1,
+  "direction_raw": 0,
+  "integral_mode_raw": 0,
+  "enabled": false,
+  "active": false,
+  "saturated": false,
+  "in_deadband": true,
+  "last_fault_raw": 1,
+  "mode": "DISABLED",
+  "axis": "PITCH",
+  "direction": "NORMAL",
+  "integral_mode": "DISABLED",
+  "last_fault": "STALE_MOTION",
+  "zero_angle_cdeg": 1,
+  "measured_angle_cdeg": 0,
+  "relative_angle_cdeg": -1,
+  "effective_error_cdeg": 0,
+  "deadband_cdeg": 100,
+  "kp": 1.0,
+  "ki": 0.0,
+  "kd": 0.05,
+  "p_term_us": 0.0,
+  "i_term_us": 0.0,
+  "d_term_us": 0.0,
+  "output_us": 0,
+  "requested_pulse_us": 1500,
+  "actual_pulse_us": 1500,
+  "motion_age_ms": 0,
+  "update_count": 54,
+  "invalid_dt_count": 0,
+  "nonfinite_input_count": 0,
+  "stale_motion_count": 1,
+  "integrator_saturation_count": 0,
+  "target_limit_count": 0,
+  "fault_count": 1,
+  "deadband_entry_count": 0,
+  "deadband_exit_count": 0
+}
+=== actuator ===
+{
+  "mode_raw": 0,
+  "state_raw": 0,
+  "armed": false,
+  "owner_raw": 0,
+  "mode": "DISABLED",
+  "state": "DISABLED",
+  "owner": "NONE",
+  "target_angle_cdeg": 0,
+  "current_angle_cdeg": 0,
+  "target_angle_deg": 0.0,
+  "current_angle_deg": 0.0,
+  "target_pulse_us": 1500,
+  "current_pulse_us": 1500,
+  "safe_min_us": 1450,
+  "safe_max_us": 1550,
+  "command_age_ms": 1480,
+  "timeout_count": 0,
+  "limit_count": 0,
+  "fault_count": 0,
+  "estop_count": 1
+}

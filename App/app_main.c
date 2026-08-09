@@ -11,6 +11,7 @@
 #include "bsp_uart.h"
 #include "calibration_service.h"
 #include "communication_service.h"
+#include "control_service.h"
 #include "csv_telemetry.h"
 #include "health_service.h"
 #include "i2c_scanner.h"
@@ -385,6 +386,7 @@ bool App_Init(uint32_t now_ms)
         !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe) ||
         !MotionService_Init(now_ms) || !MotionService_StartCalibration() ||
         !ActuatorService_Init(now_ms) ||
+        !ControlService_Init(now_ms) ||
         !CommunicationService_Init(now_ms))
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
@@ -418,6 +420,9 @@ void App_SetUartWriter(AppUartWriter_t writer)
 
 void App_SensorRunOnce(uint32_t now_ms)
 {
+    MotionFrame_t frame;
+    MotionServiceState_t motion_state;
+
     if (!s_app_initialized)
     {
         return;
@@ -425,6 +430,13 @@ void App_SensorRunOnce(uint32_t now_ms)
     HealthService_RecordLoop(now_ms);
     App_RunI2cScanStep(now_ms);
     App_RunMotionPipeline(now_ms);
+    motion_state = MotionService_GetState();
+    ControlService_Update(MotionService_GetLatestFrame(&frame) ? &frame : NULL,
+                          now_ms,
+                          AppStatus_GetState() == APP_STATE_RUNNING,
+                          (motion_state == MOTION_SERVICE_STATE_CALIBRATING) ||
+                              (motion_state == MOTION_SERVICE_STATE_RUNNING),
+                          AppStatus_GetState() == APP_STATE_FAULT);
     App_RunSensorRecovery(now_ms);
 }
 

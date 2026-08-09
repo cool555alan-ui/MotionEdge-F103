@@ -6,6 +6,7 @@
 #include "byte_ring_buffer.h"
 #include "command_service.h"
 #include "config_service.h"
+#include "control_service.h"
 #include "crc16.h"
 #include "health_service.h"
 #include "motion_service.h"
@@ -226,6 +227,7 @@ static void TestConfigCommandTelemetry(TestContext_t *context)
     g_test_pwm_start_result = HAL_OK;
     g_test_pwm_stop_result = HAL_OK;
     TEST_EXPECT(context, ActuatorService_Init(0U));
+    TEST_EXPECT(context, ControlService_Init(0U));
 
     TEST_EXPECT(context, MotionService_Init(0U));
     TEST_EXPECT(context, CommandService_Init());
@@ -352,6 +354,64 @@ static void TestConfigCommandTelemetry(TestContext_t *context)
     TEST_EXPECT(context, !actuator.armed && actuator.estop_count == 1U);
     TEST_EXPECT(context, TelemetryService_BuildActuator(&actuator, 8U, &telemetry));
     TEST_EXPECT(context, telemetry.payload_length == TELEMETRY_ACTUATOR_PAYLOAD_SIZE);
+
+    {
+        ControlStatus_t control;
+        request.type = PROTOCOL_TYPE_CONTROL_GET_STATUS;
+        request.payload_length = 0U;
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+        TEST_EXPECT(context, response.payload[4] == CONTROL_STATUS_PAYLOAD_SIZE);
+        TEST_EXPECT(context, ControlService_GetStatus(0U, &control));
+        TEST_EXPECT(context, TelemetryService_BuildControl(&control, 9U, &telemetry));
+        TEST_EXPECT(context, telemetry.payload_length == TELEMETRY_CONTROL_PAYLOAD_SIZE);
+
+        request.type = PROTOCOL_TYPE_CONTROL_GET_PID;
+        request.payload_length = 0U;
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK &&
+                             response.payload[4] == 19U);
+        request.type = PROTOCOL_TYPE_CONTROL_SET_DEADBAND;
+        request.payload_length = 3U;
+        request.payload[0] = ACTUATOR_OWNER_SERIAL;
+        request.payload[1] = 100U;
+        request.payload[2] = 0U;
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+        request.type = PROTOCOL_TYPE_CONTROL_SET_AXIS;
+        request.payload_length = 2U;
+        request.payload[0] = ACTUATOR_OWNER_SERIAL;
+        request.payload[1] = CONTROL_AXIS_PITCH;
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+        request.type = PROTOCOL_TYPE_CONTROL_SET_PID;
+        request.payload_length = 19U;
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_INVALID_LENGTH);
+        request.payload_length = 20U;
+        request.payload[0] = ACTUATOR_OWNER_SERIAL;
+        request.payload[1] = 0xE8U;
+        request.payload[2] = 0x03U; /* Kp = 1.000 us/degree */
+        request.payload[3] = 0U;
+        request.payload[4] = 0U;
+        request.payload[5] = 0U;
+        request.payload[6] = 0U;
+        request.payload[7] = 0U;
+        request.payload[8] = 0U;
+        request.payload[9] = 50U; /* Kd = 0.050 us/(degree/s) */
+        request.payload[10] = 0U;
+        request.payload[11] = 0U;
+        request.payload[12] = 0U;
+        request.payload[13] = 10U;
+        request.payload[14] = 0U;
+        request.payload[15] = 200U;
+        request.payload[16] = 0U;
+        request.payload[17] = PID_INTEGRAL_MODE_DISABLED;
+        request.payload[18] = 0xDEU;
+        request.payload[19] = 0x03U; /* leak = 0.990 */
+        TEST_EXPECT(context, CommandService_Process(&request, &response));
+        TEST_EXPECT(context, response.payload[1] == PROTOCOL_STATUS_OK);
+    }
 }
 
 void TestProtocol_Run(TestContext_t *context)

@@ -37,7 +37,8 @@ try {
         'timeout, ESTOP and fault interlock present'
     Check 'No new control task' (-not ((Get-Content -Raw -Encoding UTF8 'App\RTOS\rtos_tasks.c') -match 'ControlTask')) `
         '100 Hz SensorTask path reused'
-    Check 'No Phase 9B PID' (-not (Test-Path 'Algorithms\pid_controller.c')) 'PID remains gated by real mechanics'
+    Check 'Phase 9A safety boundary retained' (($service -match '1450U, 1500U, 1550U') -and
+        ($service -match 'ActuatorService_SetControlPulse')) 'Phase 9B still passes through the validated actuator window'
 
     $python = Get-Content -Raw -Encoding UTF8 'host\motionctl\mqtt_models.py'
     Check 'MQTT whitelist' (($python -match 'actuator_estop') -and ($python -match 'actuator_set_target')) `

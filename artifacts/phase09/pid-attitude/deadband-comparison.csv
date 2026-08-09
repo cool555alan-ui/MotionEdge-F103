@@ -1,0 +1,5 @@
+deadband_deg,samples,duration_s,pwm_min_us,pwm_max_us,pwm_std_us,pwm_change_count,direction_reversals,saturation_count,deadband_samples,selected
+0.5,1200,119.827929,1500.0,1500.0,0.0,0,0,0,1200,False
+1.0,1201,119.9783639,1500.0,1500.0,0.0,0,0,0,1201,True
+1.5,1201,119.9773861,1500.0,1500.0,0.0,0,0,0,1201,False
+2.0,1201,119.9835362,1500.0,1500.0,0.0,0,0,0,1201,False

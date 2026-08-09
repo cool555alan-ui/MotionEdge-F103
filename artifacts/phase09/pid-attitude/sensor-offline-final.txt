@@ -1,0 +1,78 @@
+﻿captured_at=2026-08-09T20:53:16.9545091+08:00
+app_state_raw: 3
+sensor_state_raw: 3
+app_state: DEGRADED
+sensor_state: DEGRADED
+calibrated: NOT_AVAILABLE
+stream_enabled: False
+uptime_ms: NOT_AVAILABLE
+task_frequency_hz: NOT_AVAILABLE
+deadline_miss: NOT_AVAILABLE
+queue: NOT_AVAILABLE
+mutex_timeouts: NOT_AVAILABLE
+heap_bytes: NOT_AVAILABLE
+stack_remaining_bytes: NOT_AVAILABLE
+protocol_errors: NOT_AVAILABLE
+uart_errors: NOT_AVAILABLE
+{
+  "mode_raw": 0,
+  "axis_raw": 1,
+  "direction_raw": 0,
+  "integral_mode_raw": 0,
+  "enabled": false,
+  "active": false,
+  "saturated": false,
+  "in_deadband": true,
+  "last_fault_raw": 2,
+  "mode": "DISABLED",
+  "axis": "PITCH",
+  "direction": "NORMAL",
+  "integral_mode": "DISABLED",
+  "last_fault": "SENSOR_OFFLINE",
+  "zero_angle_cdeg": -4,
+  "measured_angle_cdeg": -15,
+  "relative_angle_cdeg": -11,
+  "effective_error_cdeg": 0,
+  "deadband_cdeg": 100,
+  "kp": 1.0,
+  "ki": 0.0,
+  "kd": 0.05,
+  "p_term_us": 0.0,
+  "i_term_us": 0.0,
+  "d_term_us": 0.0,
+  "output_us": 0,
+  "requested_pulse_us": 1500,
+  "actual_pulse_us": 1500,
+  "motion_age_ms": 0,
+  "update_count": 6621,
+  "invalid_dt_count": 0,
+  "nonfinite_input_count": 0,
+  "stale_motion_count": 0,
+  "integrator_saturation_count": 0,
+  "target_limit_count": 0,
+  "fault_count": 1,
+  "deadband_entry_count": 0,
+  "deadband_exit_count": 0
+}
+{
+  "mode_raw": 0,
+  "state_raw": 0,
+  "armed": false,
+  "owner_raw": 0,
+  "mode": "DISABLED",
+  "state": "DISABLED",
+  "owner": "NONE",
+  "target_angle_cdeg": 0,
+  "current_angle_cdeg": 0,
+  "target_angle_deg": 0.0,
+  "current_angle_deg": 0.0,
+  "target_pulse_us": 1500,
+  "current_pulse_us": 1500,
+  "safe_min_us": 1450,
+  "safe_max_us": 1550,
+  "command_age_ms": 14510,
+  "timeout_count": 0,
+  "limit_count": 0,
+  "fault_count": 0,
+  "estop_count": 1
+}

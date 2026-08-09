@@ -13,7 +13,7 @@ I²C抽象、校准、滤波、姿态估计、CRC、协议编解码及配置校�
 |---|---:|---|---:|
 | SensorTask | 10 ms | AboveNormal | 1024 Bytes |
 | CommunicationTask | 2 ms轮询 | AboveNormal | 1024 Bytes |
-| TelemetryTask | 100 ms | Normal | 1024 Bytes |
+| TelemetryTask | 100 ms | Normal | 1088 Bytes |
 | HealthTask | 1000 ms | Low | 512 Bytes |
 
 SensorTask使用`osDelayUntil()`绝对周期唤醒。当前没有独立微秒计时器，因此执行时间和

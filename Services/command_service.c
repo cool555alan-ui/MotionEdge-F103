@@ -6,6 +6,8 @@
 #include "app_version.h"
 #include "actuator_service.h"
 #include "config_service.h"
+#include "control_service.h"
+#include "health_service.h"
 #include "motion_service.h"
 #include "telemetry_service.h"
 
@@ -20,6 +22,20 @@ static void Put16(uint8_t *data, uint16_t value)
 {
     data[0] = (uint8_t)value;
     data[1] = (uint8_t)(value >> 8U);
+}
+
+static uint32_t Get32(const uint8_t *data)
+{
+    return (uint32_t)data[0] | ((uint32_t)data[1] << 8U) |
+           ((uint32_t)data[2] << 16U) | ((uint32_t)data[3] << 24U);
+}
+
+static void Put32(uint8_t *data, uint32_t value)
+{
+    data[0] = (uint8_t)value;
+    data[1] = (uint8_t)(value >> 8U);
+    data[2] = (uint8_t)(value >> 16U);
+    data[3] = (uint8_t)(value >> 24U);
 }
 
 static bool BuildResponse(const ProtocolFrame_t *request,
@@ -106,6 +122,37 @@ static bool BuildActuatorResult(const ProtocolFrame_t *request,
                          NULL,
                          0U,
                          response);
+}
+
+static ProtocolStatusCode_t ControlStatusToProtocol(ControlResult_t result)
+{
+    switch (result)
+    {
+        case CONTROL_RESULT_OK: return PROTOCOL_STATUS_OK;
+        case CONTROL_RESULT_INVALID_ARGUMENT: return PROTOCOL_STATUS_INVALID_VALUE;
+        case CONTROL_RESULT_NOT_READY: return PROTOCOL_STATUS_NOT_READY;
+        case CONTROL_RESULT_BUSY: return PROTOCOL_STATUS_BUSY;
+        case CONTROL_RESULT_ACTUATOR_ERROR:
+        default: return PROTOCOL_STATUS_INTERNAL_ERROR;
+    }
+}
+
+static bool BuildControlResult(const ProtocolFrame_t *request,
+                               ControlResult_t result,
+                               ProtocolFrame_t *response)
+{
+    return BuildResponse(request,
+                         ControlStatusToProtocol(result),
+                         (uint16_t)result,
+                         NULL,
+                         0U,
+                         response);
+}
+
+static uint32_t CurrentTimeMs(void)
+{
+    HealthSnapshot_t health;
+    return HealthService_GetSnapshot(&health) ? health.uptime_ms : 0U;
 }
 
 bool CommandService_Init(void)
@@ -338,11 +385,15 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                     ActuatorService_Center((ActuatorOwner_t)request->payload[0]),
                     response);
             }
-            return BuildActuatorResult(
-                request,
-                ActuatorService_EmergencyStop(
-                    (ActuatorOwner_t)request->payload[0]),
-                response);
+            {
+                ActuatorResult_t result = ActuatorService_EmergencyStop(
+                    (ActuatorOwner_t)request->payload[0]);
+                if (result == ACTUATOR_RESULT_OK)
+                {
+                    ControlService_NotifyEmergencyStop();
+                }
+                return BuildActuatorResult(request, result, response);
+            }
         case PROTOCOL_TYPE_ACTUATOR_SET_TARGET:
         {
             int16_t angle;
@@ -391,6 +442,177 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                     (ActuatorOwner_t)request->payload[0], pulse),
                 response);
         }
+        case PROTOCOL_TYPE_CONTROL_GET_STATUS:
+        {
+            ControlStatus_t status;
+            ProtocolFrame_t telemetry;
+            if (request->payload_length != 0U)
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_INVALID_LENGTH,
+                                     0U, NULL, 0U, response);
+            }
+            if (!ControlService_GetStatus(CurrentTimeMs(), &status) ||
+                !TelemetryService_BuildControl(&status, 0U, &telemetry))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_NOT_READY,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildResponse(request, PROTOCOL_STATUS_OK, 0U,
+                                 telemetry.payload, telemetry.payload_length,
+                                 response);
+        }
+        case PROTOCOL_TYPE_CONTROL_ENABLE:
+        {
+            MotionFrame_t motion;
+            if ((request->payload_length != 2U) ||
+                !IsProtocolOwner(request->payload[0]) ||
+                (request->payload[1] > (uint8_t)CONTROL_AXIS_PITCH))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 2U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            if (!MotionService_GetLatestFrame(&motion))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_NOT_READY,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildControlResult(
+                request,
+                ControlService_Enable(
+                    (ActuatorOwner_t)request->payload[0],
+                    (ControlAxis_t)request->payload[1],
+                    &motion,
+                    /* 最新运动帧与姿态控制使用同一传感器时间基准，避免
+                     * 健康统计时间在协议命令路径中造成误判过期。 */
+                    motion.timestamp_ms,
+                    AppStatus_GetState() == APP_STATE_RUNNING,
+                    MotionService_GetState() == MOTION_SERVICE_STATE_RUNNING),
+                response);
+        }
+        case PROTOCOL_TYPE_CONTROL_DISABLE:
+        case PROTOCOL_TYPE_CONTROL_SET_ZERO:
+        {
+            MotionFrame_t motion;
+            if ((request->payload_length != 1U) ||
+                !IsProtocolOwner(request->payload[0]))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 1U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            if (request->type == PROTOCOL_TYPE_CONTROL_DISABLE)
+            {
+                return BuildControlResult(
+                    request,
+                    ControlService_Disable(
+                        (ActuatorOwner_t)request->payload[0]),
+                    response);
+            }
+            if (!MotionService_GetLatestFrame(&motion))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_NOT_READY,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildControlResult(
+                request,
+                ControlService_SetZero(
+                    (ActuatorOwner_t)request->payload[0],
+                    &motion,
+                    motion.timestamp_ms),
+                response);
+        }
+        case PROTOCOL_TYPE_CONTROL_SET_AXIS:
+        case PROTOCOL_TYPE_CONTROL_SET_DIRECTION:
+            if ((request->payload_length != 2U) ||
+                !IsProtocolOwner(request->payload[0]) ||
+                (request->payload[1] > 1U))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 2U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildControlResult(
+                request,
+                (request->type == PROTOCOL_TYPE_CONTROL_SET_AXIS)
+                    ? ControlService_SetAxis((ControlAxis_t)request->payload[1])
+                    : ControlService_SetDirection(
+                          (ControlDirection_t)request->payload[1]),
+                response);
+        case PROTOCOL_TYPE_CONTROL_GET_PID:
+        {
+            ControlConfig_t control;
+            if (request->payload_length != 0U)
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_INVALID_LENGTH,
+                                     0U, NULL, 0U, response);
+            }
+            if (!ControlService_GetConfig(&control))
+            {
+                return BuildResponse(request, PROTOCOL_STATUS_NOT_READY,
+                                     0U, NULL, 0U, response);
+            }
+            Put32(&data[0], (uint32_t)(int32_t)(control.pid.kp * 1000.0F));
+            Put32(&data[4], (uint32_t)(int32_t)(control.pid.ki * 1000.0F));
+            Put32(&data[8], (uint32_t)(int32_t)(control.pid.kd * 1000.0F));
+            Put16(&data[12], (uint16_t)control.pid.output_max);
+            Put16(&data[14], (uint16_t)(control.pid.derivative_alpha * 1000.0F));
+            data[16] = (uint8_t)control.pid.integral_mode;
+            Put16(&data[17], (uint16_t)(control.pid.integral_leak_factor * 1000.0F));
+            return BuildResponse(request, PROTOCOL_STATUS_OK, 0U,
+                                 data, 19U, response);
+        }
+        case PROTOCOL_TYPE_CONTROL_SET_PID:
+        {
+            ControlConfig_t control;
+            uint16_t output_limit;
+            if ((request->payload_length != 20U) ||
+                !IsProtocolOwner(request->payload[0]) ||
+                !ControlService_GetConfig(&control))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 20U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            output_limit = Get16(&request->payload[13]);
+            control.pid.kp = (float)(int32_t)Get32(&request->payload[1]) / 1000.0F;
+            control.pid.ki = (float)(int32_t)Get32(&request->payload[5]) / 1000.0F;
+            control.pid.kd = (float)(int32_t)Get32(&request->payload[9]) / 1000.0F;
+            control.pid.output_min = -(float)output_limit;
+            control.pid.output_max = (float)output_limit;
+            control.pid.integrator_min = -(float)output_limit;
+            control.pid.integrator_max = (float)output_limit;
+            control.pid.derivative_alpha =
+                (float)Get16(&request->payload[15]) / 1000.0F;
+            control.pid.integral_mode =
+                (PidIntegralMode_t)request->payload[17];
+            control.pid.integral_leak_factor =
+                (float)Get16(&request->payload[18]) / 1000.0F;
+            return BuildControlResult(
+                request, ControlService_SetPidConfig(&control.pid), response);
+        }
+        case PROTOCOL_TYPE_CONTROL_SET_DEADBAND:
+            if ((request->payload_length != 3U) ||
+                !IsProtocolOwner(request->payload[0]))
+            {
+                return BuildResponse(request,
+                                     request->payload_length != 3U
+                                         ? PROTOCOL_STATUS_INVALID_LENGTH
+                                         : PROTOCOL_STATUS_INVALID_VALUE,
+                                     0U, NULL, 0U, response);
+            }
+            return BuildControlResult(
+                request,
+                ControlService_SetDeadband(Get16(&request->payload[1])),
+                response);
         default:
             return BuildResponse(request,
                                  PROTOCOL_STATUS_INVALID_COMMAND,

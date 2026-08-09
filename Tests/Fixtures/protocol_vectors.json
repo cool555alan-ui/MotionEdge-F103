@@ -81,6 +81,33 @@
     "valid": true
   },
   {
+    "name": "control_status",
+    "type": 16,
+    "flags": 0,
+    "sequence": 8197,
+    "payload_hex": "",
+    "frame_hex": "a55a01100005200000a869",
+    "valid": true
+  },
+  {
+    "name": "control_enable_roll",
+    "type": 17,
+    "flags": 0,
+    "sequence": 8198,
+    "payload_hex": "0200",
+    "frame_hex": "a55a0111000620020002006987",
+    "valid": true
+  },
+  {
+    "name": "control_pid_default",
+    "type": 23,
+    "flags": 0,
+    "sequence": 8199,
+    "payload_hex": "02e803000000000000000000000a00c80000de03",
+    "frame_hex": "a55a0117000720140002e803000000000000000000000a00c80000de03748c",
+    "valid": true
+  },
+  {
     "name": "crc_error",
     "type": 1,
     "flags": 0,

@@ -15,6 +15,7 @@ from . import __version__, commands
 from .actuator_cli import add_actuator_parser, run_actuator
 from .capture import capture_session, load_telemetry
 from .commands import RuntimeConfig, decode_device_info, decode_motion, decode_status
+from .control_cli import add_control_parser, run_control
 from .device import DeviceClient
 from .errors import (EXIT_REPORT, EXIT_RUNTIME, EXIT_SUCCESS, MotionCtlError,
                      ReportError, ValidationError)
@@ -65,6 +66,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_gateway_parser(subs)
     add_phase08_parsers(subs)
     add_actuator_parser(subs, _connection)
+    add_control_parser(subs, _connection)
     return parser
 
 
@@ -185,6 +187,8 @@ def main(argv: list[str] | None = None) -> int:
         with _client(args) as client:
             if args.command == "actuator":
                 _print(run_actuator(args, client)); return EXIT_SUCCESS
+            if args.command == "control":
+                _print(run_control(args, client)); return EXIT_SUCCESS
             if args.command == "ping":
                 if args.count <= 0: raise ValueError("--count must be positive")
                 for _ in range(args.count): client.request(commands.PING)

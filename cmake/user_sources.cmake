@@ -1,6 +1,7 @@
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Algorithms/attitude_estimator.c
     ${CMAKE_SOURCE_DIR}/Algorithms/low_pass_filter.c
+    ${CMAKE_SOURCE_DIR}/Algorithms/pid_controller.c
     ${CMAKE_SOURCE_DIR}/Components/servo_actuator.c
     ${CMAKE_SOURCE_DIR}/App/app_main.c
     ${CMAKE_SOURCE_DIR}/App/app_status.c
@@ -30,6 +31,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/Services/command_service.c
     ${CMAKE_SOURCE_DIR}/Services/communication_service.c
     ${CMAKE_SOURCE_DIR}/Services/actuator_service.c
+    ${CMAKE_SOURCE_DIR}/Services/control_service.c
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

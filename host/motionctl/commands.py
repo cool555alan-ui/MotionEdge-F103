@@ -5,7 +5,8 @@ from __future__ import annotations
 import struct
 from dataclasses import dataclass
 
-from .models import ActuatorStatus, DeviceInfo, DeviceStatus, HealthSample, MotionSample
+from .models import (ActuatorStatus, ControlStatus, DeviceInfo, DeviceStatus,
+                     HealthSample, MotionSample)
 
 PING = 0x01
 GET_DEVICE_INFO = 0x02
@@ -22,9 +23,19 @@ ACTUATOR_SET_TARGET = 0x0C
 ACTUATOR_CENTER = 0x0D
 ACTUATOR_ESTOP = 0x0E
 ACTUATOR_SET_RAW_PULSE = 0x0F
+CONTROL_GET_STATUS = 0x10
+CONTROL_ENABLE = 0x11
+CONTROL_DISABLE = 0x12
+CONTROL_SET_ZERO = 0x13
+CONTROL_SET_AXIS = 0x14
+CONTROL_SET_DIRECTION = 0x15
+CONTROL_GET_PID = 0x16
+CONTROL_SET_PID = 0x17
+CONTROL_SET_DEADBAND = 0x18
 MOTION_TELEMETRY = 0x20
 HEALTH_TELEMETRY = 0x21
 ACTUATOR_TELEMETRY = 0x23
+CONTROL_TELEMETRY = 0x24
 COMMAND_RESPONSE = 0x80
 
 ACTUATOR_OWNER_SERIAL = 2
@@ -150,3 +161,82 @@ def decode_actuator_status(payload: bytes) -> ActuatorStatus:
         target_angle / 100.0, current_angle / 100.0,
         target_pulse, current_pulse, safe_min, safe_max,
         age, timeout, limit, fault, estop)
+
+
+CONTROL_MODE_NAMES = {0: "DISABLED", 1: "PID_ATTITUDE"}
+CONTROL_AXIS_NAMES = {0: "ROLL", 1: "PITCH"}
+CONTROL_DIRECTION_NAMES = {0: "NORMAL", 1: "REVERSE"}
+CONTROL_INTEGRAL_NAMES = {0: "DISABLED", 1: "BOUNDED", 2: "LEAKY"}
+CONTROL_FAULT_NAMES = {0: "NONE", 1: "STALE_MOTION", 2: "SENSOR_OFFLINE",
+                       3: "NOT_CALIBRATED", 4: "APP_FAULT", 5: "ACTUATOR",
+                       6: "NONFINITE", 7: "INVALID_DT"}
+
+
+@dataclass(frozen=True)
+class PidConfig:
+    kp: float = 1.0
+    ki: float = 0.0
+    kd: float = 0.0
+    output_limit_us: int = 10
+    derivative_alpha: float = 0.2
+    integral_mode: int = 0
+    integral_leak_factor: float = 0.99
+
+    def validate(self) -> bool:
+        values = (self.kp, self.ki, self.kd, self.derivative_alpha,
+                  self.integral_leak_factor)
+        return (all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                    and float("-inf") < value < float("inf") for value in values)
+                and 0.0 <= self.kp <= 50.0
+                and 0.0 <= self.ki <= 20.0
+                and 0.0 <= self.kd <= 20.0
+                and 1 <= self.output_limit_us <= 50
+                and 0.0 <= self.derivative_alpha <= 1.0
+                and self.integral_mode in (0, 1, 2)
+                and 0.0 <= self.integral_leak_factor <= 1.0)
+
+    def pack(self) -> bytes:
+        if not self.validate():
+            raise ValueError("invalid PID configuration")
+        return struct.pack("<iiiHHBH", round(self.kp * 1000),
+                           round(self.ki * 1000), round(self.kd * 1000),
+                           self.output_limit_us,
+                           round(self.derivative_alpha * 1000),
+                           self.integral_mode,
+                           round(self.integral_leak_factor * 1000))
+
+    @classmethod
+    def unpack(cls, payload: bytes) -> "PidConfig":
+        if len(payload) != 19:
+            raise ValueError("PID configuration payload must be 19 bytes")
+        kp, ki, kd, limit, alpha, mode, leak = struct.unpack("<iiiHHBH", payload)
+        result = cls(kp / 1000.0, ki / 1000.0, kd / 1000.0,
+                     limit, alpha / 1000.0, mode, leak / 1000.0)
+        if not result.validate():
+            raise ValueError("device returned invalid PID configuration")
+        return result
+
+
+def decode_control_status(payload: bytes) -> ControlStatus:
+    if len(payload) != 94:
+        raise ValueError("control status payload must be 94 bytes")
+    values = struct.unpack("<BBBBBB4iH6ihHH10I", payload)
+    mode, axis, direction, integral, flags, fault = values[:6]
+    zero, measured, relative, effective = values[6:10]
+    deadband = values[10]
+    kp, ki, kd, p_term, i_term, d_term = values[11:17]
+    output, requested, actual = values[17:20]
+    counters = values[20:]
+    return ControlStatus(
+        mode, axis, direction, integral,
+        bool(flags & 1), bool(flags & 2), bool(flags & 4), bool(flags & 8),
+        fault,
+        CONTROL_MODE_NAMES.get(mode, f"UNKNOWN({mode})"),
+        CONTROL_AXIS_NAMES.get(axis, f"UNKNOWN({axis})"),
+        CONTROL_DIRECTION_NAMES.get(direction, f"UNKNOWN({direction})"),
+        CONTROL_INTEGRAL_NAMES.get(integral, f"UNKNOWN({integral})"),
+        CONTROL_FAULT_NAMES.get(fault, f"UNKNOWN({fault})"),
+        zero, measured, relative, effective, deadband,
+        kp / 1000.0, ki / 1000.0, kd / 1000.0,
+        p_term / 1000.0, i_term / 1000.0, d_term / 1000.0,
+        output, requested, actual, *counters)

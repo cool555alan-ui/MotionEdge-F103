@@ -13,7 +13,9 @@ from .protocol import Frame, FrameParser, encode_frame
 SAFE_RETRY_COMMANDS = frozenset((commands.PING, commands.GET_DEVICE_INFO,
                                  commands.GET_STATUS, commands.GET_CONFIG,
                                  commands.GET_LATEST_MOTION,
-                                 commands.ACTUATOR_GET_STATUS))
+                                 commands.ACTUATOR_GET_STATUS,
+                                 commands.CONTROL_GET_STATUS,
+                                 commands.CONTROL_GET_PID))
 
 
 class DeviceClient:
@@ -51,7 +53,8 @@ class DeviceClient:
         frames = self.parser.feed(self.transport.read())
         for frame in frames:
             if frame.type in (commands.MOTION_TELEMETRY, commands.HEALTH_TELEMETRY,
-                              commands.ACTUATOR_TELEMETRY):
+                              commands.ACTUATOR_TELEMETRY,
+                              commands.CONTROL_TELEMETRY):
                 self.telemetry.append((time.monotonic_ns(), frame))
         return frames
 

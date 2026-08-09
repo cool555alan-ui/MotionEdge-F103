@@ -7,6 +7,7 @@
 #include "byte_ring_buffer.h"
 #include "command_service.h"
 #include "config_service.h"
+#include "control_service.h"
 #include "health_service.h"
 #include "motion_service.h"
 #include "protocol_parser.h"
@@ -16,6 +17,9 @@ static uint8_t s_rx_storage[PROTOCOL_RX_STORAGE_SIZE];
 /* 命令响应与周期遥测分别使用固定缓冲区，避免两个RTOS任务并发编码时互相覆盖。 */
 static uint8_t s_command_tx_buffer[PROTOCOL_MAX_FRAME_SIZE];
 static uint8_t s_telemetry_tx_buffer[PROTOCOL_MAX_FRAME_SIZE];
+/* 控制状态较大，使用静态快照避免占用TelemetryTask的有限栈空间。 */
+static ActuatorStatus_t s_actuator_telemetry_status;
+static ControlStatus_t s_control_telemetry_status;
 static ByteRingBuffer_t s_rx_buffer;
 static ProtocolParser_t s_parser;
 static uint16_t s_telemetry_sequence;
@@ -122,10 +126,19 @@ void CommunicationService_RunTelemetry(uint32_t now_ms,
                         sizeof(s_telemetry_tx_buffer));
     }
     {
-        ActuatorStatus_t actuator;
-        if (ActuatorService_GetStatus(now_ms, &actuator) &&
+        if (ActuatorService_GetStatus(now_ms, &s_actuator_telemetry_status) &&
             TelemetryService_BuildActuator(
-                &actuator, ++s_telemetry_sequence, &frame))
+                &s_actuator_telemetry_status, ++s_telemetry_sequence, &frame))
+        {
+            (void)SendFrame(&frame,
+                            s_telemetry_tx_buffer,
+                            sizeof(s_telemetry_tx_buffer));
+        }
+    }
+    {
+        if (ControlService_GetStatus(now_ms, &s_control_telemetry_status) &&
+            TelemetryService_BuildControl(
+                &s_control_telemetry_status, ++s_telemetry_sequence, &frame))
         {
             (void)SendFrame(&frame,
                             s_telemetry_tx_buffer,

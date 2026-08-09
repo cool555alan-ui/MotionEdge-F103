@@ -120,6 +120,48 @@ class ActuatorStatus:
 
 
 @dataclass(frozen=True)
+class ControlStatus:
+    mode_raw: int
+    axis_raw: int
+    direction_raw: int
+    integral_mode_raw: int
+    enabled: bool
+    active: bool
+    saturated: bool
+    in_deadband: bool
+    last_fault_raw: int
+    mode: str
+    axis: str
+    direction: str
+    integral_mode: str
+    last_fault: str
+    zero_angle_cdeg: int
+    measured_angle_cdeg: int
+    relative_angle_cdeg: int
+    effective_error_cdeg: int
+    deadband_cdeg: int
+    kp: float
+    ki: float
+    kd: float
+    p_term_us: float
+    i_term_us: float
+    d_term_us: float
+    output_us: int
+    requested_pulse_us: int
+    actual_pulse_us: int
+    motion_age_ms: int
+    update_count: int
+    invalid_dt_count: int
+    nonfinite_input_count: int
+    stale_motion_count: int
+    integrator_saturation_count: int
+    target_limit_count: int
+    fault_count: int
+    deadband_entry_count: int
+    deadband_exit_count: int
+
+
+@dataclass(frozen=True)
 class CommandResult:
     command: str
     success: bool

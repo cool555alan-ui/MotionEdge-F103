@@ -65,6 +65,15 @@ void TestActuatorService_Run(TestContext_t *context)
     TEST_EXPECT(context, ActuatorService_EmergencyStop(ACTUATOR_OWNER_MQTT) == ACTUATOR_RESULT_OK);
     TEST_EXPECT(context, ActuatorService_GetStatus(1200U, &status) && !status.armed && status.estop_count == 1U);
     TEST_EXPECT(context, ActuatorService_Arm(ACTUATOR_OWNER_SERIAL) == ACTUATOR_RESULT_OK);
+    TEST_EXPECT(context, ActuatorService_BeginAttitudeControl(ACTUATOR_OWNER_SERIAL) == ACTUATOR_RESULT_OK);
+    TEST_EXPECT(context, ActuatorService_SetRawPulse(ACTUATOR_OWNER_SERIAL, 1500U) == ACTUATOR_RESULT_OWNER_CONFLICT);
+    TEST_EXPECT(context, ActuatorService_SetControlPulse(2000U) == ACTUATOR_RESULT_OK);
+    TEST_EXPECT(context, ActuatorService_GetStatus(1200U, &status) &&
+                         status.mode == ACTUATOR_MODE_ATTITUDE_HOLD &&
+                         status.owner == ACTUATOR_OWNER_CONTROL_LOOP &&
+                         status.target_pulse_us == 1550U);
+    TEST_EXPECT(context, ActuatorService_Disarm(ACTUATOR_OWNER_CONTROL_LOOP) == ACTUATOR_RESULT_OK);
+    TEST_EXPECT(context, ActuatorService_Arm(ACTUATOR_OWNER_SERIAL) == ACTUATOR_RESULT_OK);
     ActuatorService_Update(1210U, true, true, false);
     TEST_EXPECT(context, ActuatorService_GetStatus(1210U, &status) && status.state == SERVO_STATE_FAULT && !BspPwm_IsRunning());
 }

@@ -148,6 +148,38 @@ ActuatorResult_t ActuatorService_SetRawPulse(ActuatorOwner_t owner,
     return ACTUATOR_RESULT_OK;
 }
 
+ActuatorResult_t ActuatorService_BeginAttitudeControl(ActuatorOwner_t owner)
+{
+    if (!s_armed) { return ACTUATOR_RESULT_NOT_ARMED; }
+    if (!OwnerMatches(owner)) { return ACTUATOR_RESULT_OWNER_CONFLICT; }
+    if (s_mode != ACTUATOR_MODE_MANUAL) { return ACTUATOR_RESULT_UNSUPPORTED; }
+    s_servo.target_pulse_us = s_servo.config.pulse_center_us;
+    s_owner = ACTUATOR_OWNER_CONTROL_LOOP;
+    s_mode = ACTUATOR_MODE_ATTITUDE_HOLD;
+    s_last_command_ms = s_now_ms;
+    s_timeout_latched = false;
+    return ACTUATOR_RESULT_OK;
+}
+
+ActuatorResult_t ActuatorService_SetControlPulse(uint16_t pulse_us)
+{
+    bool limited;
+
+    if (!s_armed) { return ACTUATOR_RESULT_NOT_ARMED; }
+    if ((s_owner != ACTUATOR_OWNER_CONTROL_LOOP) ||
+        (s_mode != ACTUATOR_MODE_ATTITUDE_HOLD))
+    {
+        return ACTUATOR_RESULT_OWNER_CONFLICT;
+    }
+    if (!ServoActuator_SetTargetPulse(&s_servo, pulse_us, &limited))
+    {
+        return ACTUATOR_RESULT_INVALID_ARGUMENT;
+    }
+    if (limited) { ++s_limit_count; }
+    s_last_command_ms = s_now_ms;
+    return ACTUATOR_RESULT_OK;
+}
+
 ActuatorResult_t ActuatorService_Center(ActuatorOwner_t owner)
 {
     return ActuatorService_SetRawPulse(owner, s_servo.config.pulse_center_us);

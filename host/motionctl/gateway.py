@@ -13,7 +13,8 @@ from typing import Any, Callable
 
 from . import __version__, commands
 from .commands import (RuntimeConfig, decode_actuator_status, decode_device_info,
-                       decode_health, decode_motion, decode_status)
+                       decode_control_status, decode_health, decode_motion,
+                       decode_status, PidConfig)
 from .device import DeviceClient
 from .gateway_config import GatewayConfig
 from .gateway_metrics import GatewayMetrics
@@ -35,7 +36,16 @@ COMMAND_IDS = {"ping": commands.PING, "get_device_info": commands.GET_DEVICE_INF
                "actuator_disarm": commands.ACTUATOR_DISARM,
                "actuator_center": commands.ACTUATOR_CENTER,
                "actuator_set_target": commands.ACTUATOR_SET_TARGET,
-               "actuator_estop": commands.ACTUATOR_ESTOP}
+               "actuator_estop": commands.ACTUATOR_ESTOP,
+               "control_status": commands.CONTROL_GET_STATUS,
+               "control_enable": commands.CONTROL_ENABLE,
+               "control_disable": commands.CONTROL_DISABLE,
+               "control_zero": commands.CONTROL_SET_ZERO,
+               "control_set_axis": commands.CONTROL_SET_AXIS,
+               "control_set_direction": commands.CONTROL_SET_DIRECTION,
+               "control_get_pid": commands.CONTROL_GET_PID,
+               "control_set_pid": commands.CONTROL_SET_PID,
+               "control_set_deadband": commands.CONTROL_SET_DEADBAND}
 
 
 class CommandResultCache:
@@ -101,6 +111,7 @@ class Gateway:
         self._status = None
         self._config = None
         self._actuator_status = None
+        self._control_status = None
         self._last_motion_sequence: int | None = None
         self._original_stream: bool | None = None
         self._mqtt = mqtt_factory(config.mqtt,
@@ -137,6 +148,8 @@ class Gateway:
                                      stream_enabled=self._config.telemetry_enabled)
         self._actuator_status = decode_actuator_status(
             self._device.request(commands.ACTUATOR_GET_STATUS))
+        self._control_status = decode_control_status(
+            self._device.request(commands.CONTROL_GET_STATUS))
         if self._original_stream is None: self._original_stream = self._config.telemetry_enabled
         if not self._config.telemetry_enabled:
             self._device.request(commands.SET_STREAM_STATE, b"\1", retry=False)
@@ -161,6 +174,7 @@ class Gateway:
                 "uptime_ms": self._status.uptime_ms if self._status else None,
                 "last_motion_sequence": self._last_motion_sequence,
                 "actuator": stable_dict(self._actuator_status) if self._actuator_status else None,
+                "control": stable_dict(self._control_status) if self._control_status else None,
                 "error_counts": self._status.protocol_errors if self._status else None,
                 "received_at": utc_iso(), "published_at": utc_iso()}
 
@@ -211,6 +225,14 @@ class Gateway:
         if not self._publish("actuator", value):
             self.metrics.increment("telemetry_dropped")
 
+    def _publish_control(self, frame) -> None:
+        self._control_status = decode_control_status(frame.payload)
+        value = {"schema_version": SCHEMA_VERSION,
+                 "device_id": self.config.gateway.device_id,
+                 **stable_dict(self._control_status), "published_at": utc_iso()}
+        if not self._publish("control", value):
+            self.metrics.increment("telemetry_dropped")
+
     def _execute_device_command(self, request: MqttCommand) -> tuple[Any, float, int]:
         if self._device is None: raise ConnectionError("serial device offline")
         payload = b""
@@ -238,6 +260,47 @@ class Gateway:
                 raise ValueError("angle_deg must be a finite number within -45..45")
             payload = struct.pack("<Bh", commands.ACTUATOR_OWNER_MQTT,
                                   round(angle * 100.0))
+        elif request.command in {"control_disable", "control_zero"}:
+            if request.params: raise ValueError("this command does not accept params")
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,))
+        elif request.command == "control_enable":
+            if set(request.params) != {"axis"} or request.params["axis"] not in {"roll", "pitch"}:
+                raise ValueError("control_enable requires axis=roll|pitch")
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,
+                             0 if request.params["axis"] == "roll" else 1))
+        elif request.command == "control_set_axis":
+            if set(request.params) != {"axis"} or request.params["axis"] not in {"roll", "pitch"}:
+                raise ValueError("control_set_axis requires axis=roll|pitch")
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,
+                             0 if request.params["axis"] == "roll" else 1))
+        elif request.command == "control_set_direction":
+            if set(request.params) != {"direction"} or request.params["direction"] not in {"normal", "reverse"}:
+                raise ValueError("control_set_direction requires normal|reverse")
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,
+                             0 if request.params["direction"] == "normal" else 1))
+        elif request.command == "control_set_deadband":
+            import struct
+            if set(request.params) != {"degrees"}:
+                raise ValueError("control_set_deadband requires degrees")
+            degrees = request.params["degrees"]
+            if isinstance(degrees, bool) or not isinstance(degrees, (int, float)) or not 0.25 <= degrees <= 5.0:
+                raise ValueError("degrees must be within 0.25..5.0")
+            payload = struct.pack("<BH", commands.ACTUATOR_OWNER_MQTT,
+                                  round(degrees * 100.0))
+        elif request.command == "control_set_pid":
+            required = {"kp", "ki", "kd", "output_limit_us", "derivative_alpha",
+                        "integral_mode", "integral_leak_factor"}
+            if set(request.params) != required:
+                raise ValueError("control_set_pid fields do not match schema")
+            mode = request.params["integral_mode"]
+            if mode not in {"disabled", "bounded", "leaky"}:
+                raise ValueError("invalid integral_mode")
+            config = PidConfig(
+                request.params["kp"], request.params["ki"], request.params["kd"],
+                request.params["output_limit_us"], request.params["derivative_alpha"],
+                {"disabled": 0, "bounded": 1, "leaky": 2}[mode],
+                request.params["integral_leak_factor"])
+            payload = bytes((commands.ACTUATOR_OWNER_MQTT,)) + config.pack()
         elif request.params:
             raise ValueError("this command does not accept params")
         before = len(self._device.attempt_results); started = time.monotonic_ns()
@@ -250,6 +313,8 @@ class Gateway:
         elif request.command == "get_config": result = stable_dict(RuntimeConfig.unpack(data))
         elif request.command == "get_latest_motion": result = stable_dict(decode_motion(data))
         elif request.command == "actuator_status": result = stable_dict(decode_actuator_status(data))
+        elif request.command == "control_status": result = stable_dict(decode_control_status(data))
+        elif request.command == "control_get_pid": result = stable_dict(PidConfig.unpack(data))
         else: result = {"accepted": True}
         return result, elapsed, max(1, attempts)
 
@@ -324,6 +389,7 @@ class Gateway:
                             if frame.type == commands.MOTION_TELEMETRY and self.config.publish.motion_enabled: self._publish_motion(frame)
                             elif frame.type == commands.HEALTH_TELEMETRY and self.config.publish.health_enabled: self._publish_health(frame)
                             elif frame.type == commands.ACTUATOR_TELEMETRY: self._publish_actuator(frame)
+                            elif frame.type == commands.CONTROL_TELEMETRY: self._publish_control(frame)
                     except Exception as exc:
                         self._last_error = str(exc); self._device.close(); self._device = None
                         self._publish("device_availability", "offline")

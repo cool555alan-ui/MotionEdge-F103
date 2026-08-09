@@ -7,12 +7,14 @@
 
 #include "health_service.h"
 #include "actuator_service.h"
+#include "control_service.h"
 #include "motion_service.h"
 #include "protocol_frame.h"
 
 #define TELEMETRY_MOTION_PAYLOAD_SIZE 45U
 #define TELEMETRY_HEALTH_PAYLOAD_SIZE 46U
 #define TELEMETRY_ACTUATOR_PAYLOAD_SIZE ACTUATOR_STATUS_PAYLOAD_SIZE
+#define TELEMETRY_CONTROL_PAYLOAD_SIZE CONTROL_STATUS_PAYLOAD_SIZE
 
 typedef struct
 {
@@ -40,5 +42,8 @@ bool TelemetryService_BuildHealth(const HealthSnapshot_t *health,
 bool TelemetryService_BuildActuator(const ActuatorStatus_t *status,
                                     uint16_t sequence,
                                     ProtocolFrame_t *frame);
+bool TelemetryService_BuildControl(const ControlStatus_t *status,
+                                   uint16_t sequence,
+                                   ProtocolFrame_t *frame);
 
 #endif /* TELEMETRY_SERVICE_H */

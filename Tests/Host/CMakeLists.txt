@@ -23,8 +23,11 @@ add_executable(firmware_host_tests
     test_pwm_stubs.c
     test_servo_actuator.c
     test_actuator_service.c
+    test_pid_controller.c
+    test_control_service.c
     ../../Algorithms/low_pass_filter.c
     ../../Algorithms/attitude_estimator.c
+    ../../Algorithms/pid_controller.c
     ../../Components/servo_actuator.c
     ../../Common/software_timer.c
     ../../App/app_status.c
@@ -44,6 +47,7 @@ add_executable(firmware_host_tests
     ../../Services/command_service.c
     ../../Services/telemetry_service.c
     ../../Services/actuator_service.c
+    ../../Services/control_service.c
     ../../BSP/bsp_pwm.c
     ../../App/RTOS/rtos_monitor.c
 )

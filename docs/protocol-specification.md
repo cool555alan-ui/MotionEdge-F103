@@ -30,8 +30,11 @@ adjacent frames, noise, and SOF bytes inside payloads.
 
 Requests are `01 PING`, `02 GET_DEVICE_INFO`, `03 GET_STATUS`,
 `04 GET_CONFIG`, `05 SET_CONFIG`, `06 START_CALIBRATION`,
-`07 SET_STREAM_STATE`, and `08 GET_LATEST_MOTION`. Telemetry types are
-`20 MOTION`, `21 HEALTH`, and reserved `22 EVENT`. All commands produce
+`07 SET_STREAM_STATE`, `08 GET_LATEST_MOTION`, `09`–`0F`执行器命令，以及
+`10 CONTROL_GET_STATUS`、`11 CONTROL_ENABLE`、`12 CONTROL_DISABLE`、
+`13 CONTROL_SET_ZERO`、`14 CONTROL_SET_AXIS`、`15 CONTROL_SET_DIRECTION`、
+`16 CONTROL_GET_PID`、`17 CONTROL_SET_PID`、`18 CONTROL_SET_DEADBAND`。遥测类型为
+`20 MOTION`、`21 HEALTH`、保留`22 EVENT`、`23 ACTUATOR`和`24 CONTROL`。所有命令产生
 `80 COMMAND_RESPONSE` with the request sequence.
 
 The response payload is:
@@ -76,6 +79,12 @@ Health is exactly 46 bytes: `uptime_ms u32`, `app_state u8`,
 `rx_overflow_count`, followed by the Sensor, Communication, Telemetry and
 Health task deadline-miss counters as four u32 values. Fields are serialized
 individually; C structure padding is never transmitted.
+
+Control遥测固定94字节，包含模式、轴、方向、积分模式、状态标志、最近故障、零位/测量/
+相对姿态/有效误差、Deadband、以milli单位编码的Kp/Ki/Kd及P/I/D项、PWM偏移、请求与
+实际脉宽，以及Motion age、更新、非法dt、非有限值、stale、积分饱和、限幅、故障和
+Deadband进出计数。PID配置使用`Kp/Ki/Kd i32 milli`、`output_limit_us u16`、
+`derivative_alpha_milli u16`、`integral_mode u8`和`leak_factor_milli u16`，不传输C结构体填充。
 
 ## UART modes and host commands
 

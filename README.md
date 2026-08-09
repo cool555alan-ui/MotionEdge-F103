@@ -7,7 +7,7 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
-- 当前固件与Python工具版本：`0.6.0`（Phase 6 实机验证通过）
+- 当前固件与Python工具版本：`0.9.1`（Phase 9B开发版本）
 
 ## Phase 1: Firmware Foundation
 
@@ -145,9 +145,13 @@ The isolated development broker binds only to `127.0.0.1:1884`; TLS is disabled,
 
 ## Phase 9A: safe PWM actuator control
 
-Phase 9A adds CubeMX TIM3_CH1/PA6 50 Hz PWM, explicit Arm, a single control Owner, integer angle mapping, pulse/angle limits, 500 µs/s slew, a 1000 ms command timeout, ESTOP, App fault interlock, actuator protocol/telemetry, `motionctl 0.9.0`, MQTT commands, and manual-only Node-RED controls. PWM remains disabled after every boot. The initial 1000/1500/2000 µs window is not a claim about mechanical travel and must be narrowed by real servo calibration.
+Phase 9A adds CubeMX TIM3_CH1/PA6 50 Hz PWM, explicit Arm, a single control Owner, integer angle mapping, pulse/angle limits, 500 µs/s slew, a 1000 ms command timeout, ESTOP, App fault interlock, actuator protocol/telemetry, `motionctl 0.9.0`, MQTT commands, and manual-only Node-RED controls. PWM remains disabled after every boot. SG90实机动作包络为1400–1600 µs，正式安全窗口保守设为1450/1500/1550 µs；软件角度映射不是实测机械角度。
 
-PID is intentionally absent until a real single-axis mechanism makes the servo change the MPU6500 platform angle and Phase 9A real-hardware validation passes. MQTT is not part of the real-time loop. See [Phase 9 actuator control](docs/phase-09-actuator-control.md), [calibration](docs/servo-pwm-calibration.md), and [safety model](docs/actuator-safety-model.md).
+## Phase 9B: PID-based attitude-driven servo control
+
+Phase 9B使用单个MPU6500测量用户手持面包板的Roll或Pitch相对零位，在现有SensorTask中以100 Hz运行通用PID，并将输出解释为相对1500 µs的PWM偏移。输出始终经过ActuatorService，绝对限制保持1450–1550 µs；默认使用P-only、Ki=0和±10 µs输出限制。MQTT与Node-RED仅负责配置、启停和10 Hz监控，不属于实时控制路径。
+
+当前SG90动作不会反向改变同一MPU6500的姿态，因此本功能是“基于PID的姿态交互式执行器控制”，不是外部姿态机械闭环、自平衡平台或姿态稳定云台。详见[Phase 9B姿态交互控制](docs/pid-attitude-control.md)、[Phase 9执行器控制](docs/phase-09-actuator-control.md)、[舵机标定](docs/servo-pwm-calibration.md)和[安全模型](docs/actuator-safety-model.md)。
 
 ```powershell
 .\tools\start-phase07-broker.ps1

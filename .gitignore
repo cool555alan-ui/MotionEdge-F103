@@ -46,6 +46,17 @@ cmake-build-*/
 /artifacts/phase09/*.log
 /artifacts/phase09/*-raw.*
 /artifacts/phase09/soak-*.csv
+/artifacts/phase09/pid-attitude/*-raw.*
+/artifacts/phase09/pid-attitude/*.log
+/artifacts/phase09/pid-attitude/*.tmp
+/artifacts/phase09/pid-attitude/**/*.log
+/artifacts/phase09/pid-attitude/**/*-raw.*
+/artifacts/phase09/pid-attitude/**/control-experiment.csv
+/artifacts/phase09/pid-attitude/**/*.tmp
+/artifacts/phase09/pid-attitude/*/
+/artifacts/phase09/pid-attitude/flash-log*.txt
+/artifacts/phase09/pid-attitude/*-observed.txt
+/artifacts/phase09/pid-attitude/safety-sensor-offline.txt
 /artifacts/phase08/tuning/candidates/*invalid*/
 /artifacts/phase08/tuning/candidates-invalid*/
 /artifacts/phase07/final-validation/gateway.log

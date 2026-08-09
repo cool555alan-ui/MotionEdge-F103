@@ -28,4 +28,4 @@ Phase 9A 只实现安全 PWM 和开环舵机控制。系统上电后执行器为
 - `Services/actuator_service.*`：Arm、Owner、超时、ESTOP 和故障联锁。
 - `motionctl actuator`：串口手动控制与逐步标定。
 
-Phase 9B PID 未实现。只有舵机能真实改变 MPU6500 所在平台的一个明确姿态轴，并且 Phase 9A 实机核心项全部通过后，才允许增加闭环。
+Phase 9B在Phase 9A安全边界内增加单MPU6500姿态驱动舵机控制。SG90不会改变手持MPU6500姿态，因此不描述为外部姿态机械闭环；详细边界见`pid-attitude-control.md`。

@@ -1,0 +1,86 @@
+{
+  "status": "PASS_WITH_WARNINGS",
+  "validated_at": "2026-08-09T22:00:31+08:00",
+  "commit": "03e99774f2e707c5c91fc97e703b8a1360995a9c",
+  "firmware_version": "0.9.1",
+  "gateway_version": "0.9.1",
+  "control": {
+    "axis": "PITCH",
+    "frequency_hz_local": 100,
+    "kp": 1.0,
+    "ki": 0.0,
+    "kd": 0.05,
+    "deadband_deg": 1.0,
+    "derivative_alpha": 0.2,
+    "integral_mode": "DISABLED",
+    "pid_output_limit_us": [
+      -10,
+      10
+    ],
+    "actuator_absolute_window_us": [
+      1450,
+      1550
+    ]
+  },
+  "stability_600s": {
+    "status": "PASS",
+    "samples": 5976,
+    "duration_s": 599.8563695,
+    "control_frequency_hz": 9.960717771456455,
+    "pwm_min_us": 1490.0,
+    "pwm_max_us": 1503.0,
+    "pwm_mean_us": 1499.838186077644,
+    "pwm_std_us": 1.1678512300355695,
+    "pwm_rms_offset_us": 1.1790081598376898,
+    "pwm_peak_to_peak_us": 13.0,
+    "output_rms_us": 1.1790081598376898,
+    "direction_reversals": 15,
+    "saturation_count": 52,
+    "deadband_samples": 5816,
+    "input_pwm_correlation": 0.9563500090552626,
+    "interpretation": "HUMAN_INPUT_LIMITED",
+    "fault_count_delta": 0,
+    "stale_count_delta": 0,
+    "nonfinite_count_delta": 0,
+    "final_disabled": true,
+    "final_estop": true
+  },
+  "rtos": {
+    "stack_remaining_bytes": [
+      384,
+      568,
+      200,
+      456
+    ],
+    "heap_free_bytes": 3064,
+    "minimum_ever_heap_bytes": 2440,
+    "deadline_miss_cumulative": [
+      19,
+      0,
+      0,
+      0
+    ],
+    "stack_overflow": 0,
+    "malloc_failure": 0
+  },
+  "regression": {
+    "c_assertions": "717/717",
+    "python_tests": "123/123",
+    "phase_checks": "1-9B PASS",
+    "debug_flash_bytes": 57736,
+    "debug_ram_bytes": 17688,
+    "release_flash_bytes": 50516,
+    "release_ram_bytes": 17688,
+    "compiler_warnings": 0
+  },
+  "warnings": [
+    "Pitch motion was not observed inside the continuous 360-480 s segment; separate real Pitch experiment covers -45.15..45.61 deg.",
+    "Sensor deadline miss is cumulative 19 since reset; a start snapshot was not captured.",
+    "PWM electrical jitter NOT_TESTED; iPhone angle reference remains REFERENCE_LIMITED."
+  ],
+  "not_applicable": [
+    "external plant settling time",
+    "external plant overshoot",
+    "external steady-state control error"
+  ]
+}

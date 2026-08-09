@@ -12,11 +12,16 @@ from .mqtt_topics import SCHEMA_VERSION
 
 READ_ONLY_COMMANDS = frozenset({"ping", "get_device_info", "get_status",
                                 "get_config", "get_latest_motion",
-                                "actuator_status"})
+                                "actuator_status", "control_status",
+                                "control_get_pid"})
 SIDE_EFFECT_COMMANDS = frozenset({"set_config", "start_calibration",
                                   "set_stream_state", "actuator_arm",
                                   "actuator_disarm", "actuator_center",
-                                  "actuator_set_target", "actuator_estop"})
+                                  "actuator_set_target", "actuator_estop",
+                                  "control_enable", "control_disable",
+                                  "control_zero", "control_set_axis",
+                                  "control_set_direction", "control_set_pid",
+                                  "control_set_deadband"})
 ALLOWED_COMMANDS = READ_ONLY_COMMANDS | SIDE_EFFECT_COMMANDS
 
 

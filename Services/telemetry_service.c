@@ -130,3 +130,53 @@ bool TelemetryService_BuildActuator(const ActuatorStatus_t *status,
     frame->payload_length = (uint16_t)offset;
     return offset == TELEMETRY_ACTUATOR_PAYLOAD_SIZE;
 }
+
+bool TelemetryService_BuildControl(const ControlStatus_t *status,
+                                   uint16_t sequence,
+                                   ProtocolFrame_t *frame)
+{
+    size_t offset = 0U;
+    uint8_t flags;
+
+    if ((status == NULL) || (frame == NULL)) { return false; }
+    *frame = (ProtocolFrame_t){0};
+    frame->version = PROTOCOL_VERSION;
+    frame->type = PROTOCOL_TYPE_CONTROL_TELEMETRY;
+    frame->sequence = sequence;
+    flags = (status->enabled ? 1U : 0U) |
+            (status->active ? 2U : 0U) |
+            (status->saturated ? 4U : 0U) |
+            (status->in_deadband ? 8U : 0U);
+    frame->payload[offset++] = (uint8_t)status->mode;
+    frame->payload[offset++] = (uint8_t)status->axis;
+    frame->payload[offset++] = (uint8_t)status->direction;
+    frame->payload[offset++] = (uint8_t)status->integral_mode;
+    frame->payload[offset++] = flags;
+    frame->payload[offset++] = (uint8_t)status->last_fault;
+    Put32(&frame->payload[offset], (uint32_t)status->zero_angle_cdeg); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->measured_angle_cdeg); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->relative_angle_cdeg); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->effective_error_cdeg); offset += 4U;
+    Put16(&frame->payload[offset], status->deadband_cdeg); offset += 2U;
+    Put32(&frame->payload[offset], (uint32_t)status->kp_milli); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->ki_milli); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->kd_milli); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->p_term_milli); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->i_term_milli); offset += 4U;
+    Put32(&frame->payload[offset], (uint32_t)status->d_term_milli); offset += 4U;
+    Put16(&frame->payload[offset], (uint16_t)status->output_us); offset += 2U;
+    Put16(&frame->payload[offset], status->requested_pulse_us); offset += 2U;
+    Put16(&frame->payload[offset], status->actual_pulse_us); offset += 2U;
+    Put32(&frame->payload[offset], status->motion_age_ms); offset += 4U;
+    Put32(&frame->payload[offset], status->update_count); offset += 4U;
+    Put32(&frame->payload[offset], status->invalid_dt_count); offset += 4U;
+    Put32(&frame->payload[offset], status->nonfinite_input_count); offset += 4U;
+    Put32(&frame->payload[offset], status->stale_motion_count); offset += 4U;
+    Put32(&frame->payload[offset], status->integrator_saturation_count); offset += 4U;
+    Put32(&frame->payload[offset], status->target_limit_count); offset += 4U;
+    Put32(&frame->payload[offset], status->fault_count); offset += 4U;
+    Put32(&frame->payload[offset], status->deadband_entry_count); offset += 4U;
+    Put32(&frame->payload[offset], status->deadband_exit_count); offset += 4U;
+    frame->payload_length = (uint16_t)offset;
+    return offset == TELEMETRY_CONTROL_PAYLOAD_SIZE;
+}

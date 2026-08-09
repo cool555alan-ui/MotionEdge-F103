@@ -56,9 +56,9 @@ try {
     Add-Check 'Task stacks explicit' `
         (($taskHeader -match 'RTOS_SENSOR_STACK_BYTES\s+1280U') -and
          ($taskHeader -match 'RTOS_COMMUNICATION_STACK_BYTES\s+1024U') -and
-         ($taskHeader -match 'RTOS_TELEMETRY_STACK_BYTES\s+1024U') -and
+         ($taskHeader -match 'RTOS_TELEMETRY_STACK_BYTES\s+1088U') -and
          ($taskHeader -match 'RTOS_HEALTH_STACK_BYTES\s+1280U')) `
-        '1280/1024/1024/1280 bytes from measured high-water marks'
+        '1280/1024/1088/1280 bytes from measured high-water marks'
 
     $main = Get-Content -Raw -Encoding UTF8 'Src\main.c'
     Add-Check 'RTOS owns main path' `

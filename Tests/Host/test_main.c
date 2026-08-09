@@ -17,6 +17,8 @@ void TestRtosMonitor_Run(TestContext_t *context);
 void TestPwm_Run(TestContext_t *context);
 void TestServoActuator_Run(TestContext_t *context);
 void TestActuatorService_Run(TestContext_t *context);
+void TestPidController_Run(TestContext_t *context);
+void TestControlService_Run(TestContext_t *context);
 
 void Test_RecordAssertion(TestContext_t *context,
                           bool condition,
@@ -56,6 +58,8 @@ int main(void)
     TestPwm_Run(&context);
     TestServoActuator_Run(&context);
     TestActuatorService_Run(&context);
+    TestPidController_Run(&context);
+    TestControlService_Run(&context);
 
     (void)printf("Host assertions: total=%u passed=%u failed=%u\n",
                  context.assertion_count,
