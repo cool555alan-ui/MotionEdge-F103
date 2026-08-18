@@ -39,9 +39,14 @@ add_subdirectory(cmake/stm32cubemx)
 
 # Debug 保留完整调试信息，同时使用 GCC 为调试设计的轻量优化，
 # 避免 -O0 将 HAL、FreeRTOS 和应用代码异常膨胀到接近 Flash 上限。
-foreach(debug_target ${CMAKE_PROJECT_NAME} STM32_Drivers FreeRTOS)
-    target_compile_options(${debug_target} PRIVATE
-        $<$<CONFIG:Debug>:-Og>
+# Keep application code easy to debug while size-optimizing the stable HAL and
+# FreeRTOS implementation details. Debug symbols remain enabled for all targets.
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE
+    $<$<CONFIG:Debug>:-Og>
+)
+foreach(debug_runtime_target STM32_Drivers FreeRTOS)
+    target_compile_options(${debug_runtime_target} PRIVATE
+        $<$<CONFIG:Debug>:-Os>
     )
 endforeach()
 
