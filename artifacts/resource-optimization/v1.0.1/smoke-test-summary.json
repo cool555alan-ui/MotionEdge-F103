@@ -1,0 +1,89 @@
+{
+  "test": "POST_OPTIMIZATION_SMOKE",
+  "status": "PASS",
+  "started_at": "2026-08-18T15:29:09+08:00",
+  "duration_s": 123.06,
+  "port": "COM4",
+  "baud": 115200,
+  "firmware": "1.0.1",
+  "scope": "120-second post-optimization smoke; not a long-term stability validation",
+  "stages": {
+    "00_30_sensor_protocol": {
+      "duration_s": 30.01,
+      "app": "RUNNING",
+      "sensor": "RUNNING",
+      "calibrated": true,
+      "motion_sequence_delta": 3063,
+      "sensor_rate_hz": 102.06,
+      "roll_start_deg": -0.06,
+      "roll_end_deg": -0.06,
+      "pitch_start_deg": -0.05,
+      "pitch_end_deg": -0.05
+    },
+    "30_60_mqtt_node_red": {
+      "duration_s": 30.0,
+      "mqtt_motion": 289,
+      "mqtt_health": 29,
+      "mqtt_actuator": 289,
+      "mqtt_control": 289,
+      "node_red_motion_delta": 289,
+      "node_red_health_delta": 29,
+      "node_red_latency_p95_ms": 2
+    },
+    "60_90_pid_attitude_response": {
+      "duration_s": 30.0,
+      "update_count_delta": 3010,
+      "axis": "PITCH",
+      "direction": "NORMAL",
+      "last_fault": "NONE",
+      "pwm_min_us": 1500,
+      "pwm_max_us": 1500,
+      "observed_motion": "NONE_STATIONARY_WITHIN_DEADBAND",
+      "note": "The sensor remained stationary inside the configured 1 degree deadband. PID execution was observed, but no opposing servo displacement is claimed."
+    },
+    "90_120_final_safe": {
+      "duration_s": 30.0,
+      "armed": false,
+      "owner": "NONE",
+      "pwm_us": 1500,
+      "control_enabled": false,
+      "fault": "NONE"
+    }
+  },
+  "checks": {
+    "firmware_1_0_1": "PASS",
+    "mpu6500_online": "PASS",
+    "sensor_task_approximately_100_hz": "PASS",
+    "binary_protocol": "PASS",
+    "mqtt_motion": "PASS",
+    "mqtt_health": "PASS",
+    "node_red": "PASS",
+    "pid_updates": "PASS",
+    "pwm_safe": "PASS",
+    "no_health_error_delta": "PASS",
+    "no_reset_hardfault": "PASS",
+    "final_safe": "PASS"
+  },
+  "frames": {
+    "motion": 902,
+    "actuator": 902,
+    "control": 902,
+    "health": 90
+  },
+  "health_error_delta": {
+    "i2c_errors": 0,
+    "protocol_crc_errors": 0,
+    "uart_rx_overflows": 0
+  },
+  "serial_crc_errors": 0,
+  "serial_parser_errors": 0,
+  "pwm_min_us": 1500,
+  "pwm_max_us": 1500,
+  "final_state": {
+    "control": "DISABLED",
+    "actuator": "DISARMED",
+    "owner": "NONE",
+    "pwm_us": 1500,
+    "fault": "NONE"
+  }
+}

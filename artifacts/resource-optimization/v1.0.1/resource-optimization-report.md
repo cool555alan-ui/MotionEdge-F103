@@ -53,7 +53,7 @@ Bounds, timeout wrap, nonfinite guards, Flash range use, PWM range, static lifet
 
 ## Validation status
 
-Final-candidate Host C, Python, Debug/Release, Phase 10, release, packaging, and 120-second post-optimization hardware smoke results are recorded in `resource-optimization-summary.json` and `smoke-test-summary.json`. No Level C change was made; historical 600-second and 1,800-second tests are not rerun.
+Final-candidate Host C, all 131 Python tests, Debug/Release builds, Phase 10 static gate, release gate, release packaging, size/overlap checks, and the 123.06-second post-optimization hardware smoke passed. The smoke observed firmware 1.0.1, calibrated MPU6500 data at 102.06 Hz, MQTT/Node-RED telemetry, 3,010 PID updates, safe PWM, zero health-error deltas, no reset/HardFault, and a final 1500 µs Disabled/Disarmed state. The stationary sensor remained inside the configured 1° deadband, so PID output stayed at zero; no servo displacement is claimed for this smoke. No Level C change was made; historical 600-second and 1,800-second tests are not rerun.
 
 ## Long tests deliberately not rerun
 

@@ -4,7 +4,7 @@
   "baseline_commit": "16a2ccac9fb876b70058382c963a64e696be0c66",
   "baseline_tag": "v1.0.0",
   "optimization_level": "A",
-  "status": "FINAL_VALIDATION_PENDING",
+  "status": "PASS",
   "memory": {
     "debug": {
       "flash_before_bytes": 62308,
@@ -45,13 +45,14 @@
     "hardware": "UNCHANGED"
   },
   "tests": {
-    "host_c": "PENDING_FINAL_CANDIDATE",
-    "python": "PENDING_FINAL_CANDIDATE",
+    "host_c": "PASS",
+    "python": "PASS_131_TESTS",
     "debug_build": "PASS",
     "release_build": "PASS",
-    "phase10": "PENDING_FINAL_CANDIDATE",
-    "release_gate": "PENDING_FINAL_CANDIDATE",
-    "post_optimization_smoke": "PENDING"
+    "phase10": "PASS",
+    "release_gate": "PASS",
+    "release_package": "PASS",
+    "post_optimization_smoke": "PASS"
   },
   "long_tests_rerun": false
 }
