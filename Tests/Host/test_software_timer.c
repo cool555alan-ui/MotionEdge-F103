@@ -1,5 +1,7 @@
 #include <stdint.h>
 
+#include <stddef.h>
+
 #include "software_timer.h"
 #include "test_support.h"
 
