@@ -14,7 +14,7 @@ from typing import Any, Callable
 from . import __version__, commands
 from .commands import (RuntimeConfig, decode_actuator_status, decode_device_info,
                        decode_control_status, decode_health, decode_motion,
-                       decode_status, PidConfig)
+                       decode_status, decode_persistence_status, PidConfig)
 from .device import DeviceClient
 from .gateway_config import GatewayConfig
 from .gateway_metrics import GatewayMetrics
@@ -45,7 +45,11 @@ COMMAND_IDS = {"ping": commands.PING, "get_device_info": commands.GET_DEVICE_INF
                "control_set_direction": commands.CONTROL_SET_DIRECTION,
                "control_get_pid": commands.CONTROL_GET_PID,
                "control_set_pid": commands.CONTROL_SET_PID,
-               "control_set_deadband": commands.CONTROL_SET_DEADBAND}
+               "control_set_deadband": commands.CONTROL_SET_DEADBAND,
+               "config_persist_status": commands.CONFIG_PERSIST_STATUS,
+               "config_persist_save": commands.CONFIG_PERSIST_SAVE,
+               "config_persist_load": commands.CONFIG_PERSIST_LOAD,
+               "config_factory_reset": commands.CONFIG_FACTORY_RESET}
 
 
 class CommandResultCache:
@@ -315,6 +319,7 @@ class Gateway:
         elif request.command == "actuator_status": result = stable_dict(decode_actuator_status(data))
         elif request.command == "control_status": result = stable_dict(decode_control_status(data))
         elif request.command == "control_get_pid": result = stable_dict(PidConfig.unpack(data))
+        elif request.command == "config_persist_status": result = decode_persistence_status(data)
         else: result = {"accepted": True}
         return result, elapsed, max(1, attempts)
 

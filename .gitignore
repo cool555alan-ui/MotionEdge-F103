@@ -68,5 +68,9 @@ Release/
 .idea/
 **/__pycache__/
 host/*.egg-info/
+/dist/
+/artifacts/phase10/**/*.log
+/artifacts/phase10/**/*-raw.*
+/artifacts/phase10/**/*.tmp
 Thumbs.db
 .DS_Store

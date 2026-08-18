@@ -6,6 +6,8 @@
 #include "app_version.h"
 #include "actuator_service.h"
 #include "config_service.h"
+#include "config_persistence.h"
+#include "config_store.h"
 #include "control_service.h"
 #include "health_service.h"
 #include "motion_service.h"
@@ -157,8 +159,12 @@ static uint32_t CurrentTimeMs(void)
 
 bool CommandService_Init(void)
 {
-    s_mode = COMMAND_SERVICE_MODE_DEVELOPMENT;
-    return ConfigService_Init();
+    RuntimeConfig_t config;
+    if(!ConfigService_Get(&config) &&
+       (!ConfigService_Init() || !ConfigService_Get(&config))) return false;
+    s_mode = config.telemetry_enabled ? COMMAND_SERVICE_MODE_PROTOCOL
+                                      : COMMAND_SERVICE_MODE_DEVELOPMENT;
+    return true;
 }
 
 bool CommandService_Process(const ProtocolFrame_t *request,
@@ -251,6 +257,7 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                                      0U,
                                      response);
             }
+            ConfigStore_MarkDirty();
             s_mode = config.telemetry_enabled
                          ? COMMAND_SERVICE_MODE_PROTOCOL
                          : COMMAND_SERVICE_MODE_DEVELOPMENT;
@@ -297,6 +304,7 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                                      0U,
                                      response);
             }
+            ConfigStore_MarkDirty();
             s_mode = config.telemetry_enabled
                          ? COMMAND_SERVICE_MODE_PROTOCOL
                          : COMMAND_SERVICE_MODE_DEVELOPMENT;
@@ -538,13 +546,13 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                                          : PROTOCOL_STATUS_INVALID_VALUE,
                                      0U, NULL, 0U, response);
             }
-            return BuildControlResult(
-                request,
-                (request->type == PROTOCOL_TYPE_CONTROL_SET_AXIS)
+            {
+                ControlResult_t result=(request->type==PROTOCOL_TYPE_CONTROL_SET_AXIS)
                     ? ControlService_SetAxis((ControlAxis_t)request->payload[1])
-                    : ControlService_SetDirection(
-                          (ControlDirection_t)request->payload[1]),
-                response);
+                    : ControlService_SetDirection((ControlDirection_t)request->payload[1]);
+                if(result==CONTROL_RESULT_OK){ConfigStore_MarkDirty();}
+                return BuildControlResult(request,result,response);
+            }
         case PROTOCOL_TYPE_CONTROL_GET_PID:
         {
             ControlConfig_t control;
@@ -596,8 +604,11 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                 (PidIntegralMode_t)request->payload[17];
             control.pid.integral_leak_factor =
                 (float)Get16(&request->payload[18]) / 1000.0F;
-            return BuildControlResult(
-                request, ControlService_SetPidConfig(&control.pid), response);
+            {
+                ControlResult_t result=ControlService_SetPidConfig(&control.pid);
+                if(result==CONTROL_RESULT_OK){ConfigStore_MarkDirty();}
+                return BuildControlResult(request,result,response);
+            }
         }
         case PROTOCOL_TYPE_CONTROL_SET_DEADBAND:
             if ((request->payload_length != 3U) ||
@@ -609,10 +620,39 @@ bool CommandService_Process(const ProtocolFrame_t *request,
                                          : PROTOCOL_STATUS_INVALID_VALUE,
                                      0U, NULL, 0U, response);
             }
-            return BuildControlResult(
-                request,
-                ControlService_SetDeadband(Get16(&request->payload[1])),
-                response);
+            {
+                ControlResult_t result =
+                    ControlService_SetDeadband(Get16(&request->payload[1]));
+                if (result == CONTROL_RESULT_OK) { ConfigStore_MarkDirty(); }
+                return BuildControlResult(request, result, response);
+            }
+        case PROTOCOL_TYPE_CONFIG_PERSIST_STATUS:
+        {
+            ConfigStoreStatus_t status;
+            if (request->payload_length != 0U || !ConfigStore_GetStatus(&status))
+                return BuildResponse(request, request->payload_length ? PROTOCOL_STATUS_INVALID_LENGTH : PROTOCOL_STATUS_INTERNAL_ERROR, 0U, NULL, 0U, response);
+            data[0]=(uint8_t)status.loaded_from; data[1]=(uint8_t)status.schema_version;
+            data[2]=status.valid_slot_count; data[3]=status.dirty?1U:0U;
+            Put32(data+4,status.generation); data[8]=(uint8_t)status.last_save_status;
+            Put32(data+9,status.save_count); Put32(data+13,status.factory_reset_count);
+            Put32(data+17,status.crc_error_count); Put32(data+21,status.invalid_record_count);
+            Put32(data+25,status.unsupported_schema_count); Put32(data+29,status.save_rate_limited_count);
+            Put32(data+33,status.last_save_duration_ms);
+            return BuildResponse(request,PROTOCOL_STATUS_OK,0U,data,37U,response);
+        }
+        case PROTOCOL_TYPE_CONFIG_PERSIST_SAVE:
+        case PROTOCOL_TYPE_CONFIG_PERSIST_LOAD:
+        case PROTOCOL_TYPE_CONFIG_FACTORY_RESET:
+        {
+            ConfigSaveStatus_t result;
+            if(request->payload_length!=0U)return BuildResponse(request,PROTOCOL_STATUS_INVALID_LENGTH,0U,NULL,0U,response);
+            result=(request->type==PROTOCOL_TYPE_CONFIG_PERSIST_SAVE)?ConfigPersistence_Save(CurrentTimeMs()):
+                ((request->type==PROTOCOL_TYPE_CONFIG_PERSIST_LOAD)?ConfigPersistence_Load():ConfigPersistence_FactoryReset(CurrentTimeMs()));
+            return BuildResponse(request,result==CONFIG_SAVE_OK?PROTOCOL_STATUS_OK:
+                (result==CONFIG_SAVE_BUSY||result==CONFIG_SAVE_RATE_LIMITED?PROTOCOL_STATUS_BUSY:
+                (result==CONFIG_SAVE_INVALID?PROTOCOL_STATUS_INVALID_VALUE:PROTOCOL_STATUS_INTERNAL_ERROR)),
+                (uint16_t)result,NULL,0U,response);
+        }
         default:
             return BuildResponse(request,
                                  PROTOCOL_STATUS_INVALID_COMMAND,

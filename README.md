@@ -7,7 +7,15 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
-- 当前固件与Python工具版本：`0.9.1`（Phase 9B开发版本）
+- 当前固件、Python工具与Gateway版本：`1.0.0`
+
+## v1.0 architecture and status
+
+`MPU6500 → I²C BSP → Sensor Service → Calibration/Low Pass → Complementary Attitude → Roll/Pitch → PID Attitude Control → Actuator Safety → TIM3 PWM → SG90`
+
+FreeRTOS任务频率为Sensor 100 Hz、Communication约500 Hz、Telemetry 10 Hz、Health 1 Hz。二进制协议连接STM32与motionctl/Python Gateway，再连接本机Mosquitto和Node-RED。Runtime Config通过ConfigStore写入双Flash槽；CI覆盖Host C、Python、Debug/Release固件、Size Gate和Release Gate。
+
+Phase 1～7均PASS；Phase 8为PASS / REFERENCE_LIMITED；Phase 9、Phase 9B均PASS；Phase 10的软件门禁和真实硬件报告见`artifacts/phase10/final-validation/`。控制功能的准确名称是“基于PID的姿态交互式舵机控制”（PID-based attitude-driven servo control），并非外部机械姿态闭环。
 
 ## Phase 1: Firmware Foundation
 

@@ -1,0 +1,17 @@
+{
+  "scope": "C host FakeFlash tests; not claimed as physical power-cut injection",
+  "status": "PASS",
+  "checks": {
+    "erase_failure": "PASS",
+    "program_failure": "PASS",
+    "readback_mismatch": "PASS",
+    "partial_header": "PASS",
+    "partial_payload": "PASS",
+    "partial_crc": "PASS",
+    "missing_commit_marker": "PASS",
+    "corrupt_commit_marker": "PASS",
+    "corrupt_crc": "PASS",
+    "old_slot_recovery": "PASS",
+    "both_slots_invalid_defaults": "PASS"
+  }
+}

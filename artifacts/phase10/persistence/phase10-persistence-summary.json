@@ -1,0 +1,27 @@
+{
+  "status": "PASS",
+  "validated_at": "2026-08-09T23:31:00+08:00",
+  "firmware_version": "1.0.0",
+  "candidate_commit": "c00e184 with tracked Phase 10 working-tree changes",
+  "flash": {
+    "physical_bytes": 65536,
+    "page_bytes": 1024,
+    "slot_a": "0x0800F800-0x0800FBFF",
+    "slot_b": "0x0800FC00-0x0800FFFF",
+    "record_bytes": 54,
+    "schema": 1,
+    "crc": "CRC16-CCITT-FALSE",
+    "commit_marker_written_last": true
+  },
+  "power_cycle": "PASS",
+  "ram_only_change_discarded": "PASS",
+  "slot_switch": "PASS",
+  "factory_reset": "PASS",
+  "safe_boot": "PASS",
+  "final_candidate_flash_write_duration_ms": 2,
+  "notes": [
+    "All power-cycle steps used physical supply removal for at least two seconds and user confirmation.",
+    "The final candidate was programmed and verified with STM32CubeProgrammer 2.23.0; ST-LINK voltage was 3.33 V.",
+    "Fault injection is host FakeFlash evidence; real hardware evidence covers save, A/B selection, power loss, RAM-only discard, and factory reset."
+  ]
+}

@@ -45,8 +45,8 @@ try {
     Check 'Node-RED honest naming' (-not ($flow -match '(?i)closed[ -]?loop')) 'PID Attitude Control only'
     Check 'README boundary' (($readme -match 'PID-based attitude-driven servo control') -and
         ($readme -match '100 Hz')) 'single-IMU interpretation and local rate explicit'
-    Check 'Firmware version' ((Get-Content -Raw 'App\app_version.h') -match 'APP_VERSION_STRING "0\.9\.1"') '0.9.1'
-    Check 'Python version' ((Get-Content -Raw 'host\motionctl\__init__.py') -match '__version__ = "0\.9\.1"') '0.9.1'
+    Check 'Firmware version' ((Get-Content -Raw 'App\app_version.h') -match 'APP_VERSION_STRING "(0\.9\.1|1\.0\.0)"') '0.9.1 or later'
+    Check 'Python version' ((Get-Content -Raw 'host\motionctl\__init__.py') -match '__version__ = "(0\.9\.1|1\.0\.0)"') '0.9.1 or later'
 
     git diff --check
     Check 'Git diff format' ($LASTEXITCODE -eq 0) 'no whitespace errors'

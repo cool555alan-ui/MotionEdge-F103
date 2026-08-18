@@ -1,0 +1,25 @@
+name: CI
+on:
+  push: {branches: [main]}
+  pull_request: {branches: [main]}
+permissions: {contents: read}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12', cache: pip, cache-dependency-path: host/pyproject.toml}
+      - run: python -m pip install --upgrade pip && python -m pip install -e ./host build
+      - name: Host C tests
+        run: cmake -S Tests/Host -B build-host -G Ninja && cmake --build build-host && ctest --test-dir build-host --output-on-failure
+      - name: Python tests
+        run: python -m unittest discover -s host/tests -p 'test_*.py'
+      - name: Firmware Debug and Release
+        run: cmake --preset Debug && cmake --build --preset Debug && cmake --preset Release && cmake --build --preset Release
+      - name: Size and overlap gates
+        run: python tools/check-firmware-size.py build/Debug/MotionEdge-F103.elf && python tools/check-firmware-size.py build/Release/MotionEdge-F103.elf
+      - name: Static and release gates
+        shell: pwsh
+        run: ./tools/check-phase10.ps1; ./tools/check-release.ps1

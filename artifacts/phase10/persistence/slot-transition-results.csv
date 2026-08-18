@@ -1,0 +1,11 @@
+operation,source,generation,valid_slots,dirty,last_save_duration_ms,status
+boot_empty,DEFAULTS,0,0,false,0,PASS
+save_1,SLOT_A,1,1,false,NOT_RECORDED,PASS
+power_cycle_1,SLOT_A,1,1,false,NOT_RECORDED,PASS
+ram_only_change,SLOT_A,1,1,true,NOT_RECORDED,PASS
+power_cycle_2,SLOT_A,1,1,false,NOT_RECORDED,PASS
+save_2,SLOT_B,2,2,false,NOT_RECORDED,PASS
+power_cycle_3,SLOT_B,2,2,false,NOT_RECORDED,PASS
+factory_reset,DEFAULTS,0,0,false,NOT_RECORDED,PASS
+final_candidate_save,SLOT_A,1,1,false,2,PASS
+final_candidate_factory_reset,DEFAULTS,0,0,false,2,PASS

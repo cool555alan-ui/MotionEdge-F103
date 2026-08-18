@@ -8,7 +8,7 @@
 #define CONTROL_SAFE_MAX_PULSE_US 1550U
 
 static const PidControllerConfig_t s_default_pid_config = {
-    1.0F, 0.0F, 0.0F,
+    1.0F, 0.0F, 0.05F,
     -10.0F, 10.0F,
     -10.0F, 10.0F,
     0.20F, 0.005F, 0.030F,
@@ -71,7 +71,7 @@ bool ControlService_Init(uint32_t now_ms)
 {
     (void)now_ms;
     s_config.pid = s_default_pid_config;
-    s_config.axis = CONTROL_AXIS_ROLL;
+    s_config.axis = CONTROL_AXIS_PITCH;
     s_config.direction = CONTROL_DIRECTION_NORMAL;
     s_config.deadband_cdeg = 100U;
     s_status = (ControlStatus_t){0};

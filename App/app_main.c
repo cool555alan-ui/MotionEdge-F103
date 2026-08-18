@@ -12,6 +12,8 @@
 #include "calibration_service.h"
 #include "communication_service.h"
 #include "control_service.h"
+#include "config_persistence.h"
+#include "config_service.h"
 #include "csv_telemetry.h"
 #include "health_service.h"
 #include "i2c_scanner.h"
@@ -36,6 +38,7 @@ static uint32_t s_last_csv_sequence = 0U;
 static bool s_has_csv_sequence = false;
 static CalibrationState_t s_last_calibration_state = CALIBRATION_STATE_IDLE;
 static uint32_t s_next_sensor_recovery_ms = 0U;
+static volatile uint8_t s_app_init_stage = 0U;
 static char s_csv_buffer[APP_CSV_BUFFER_SIZE];
 
 static bool App_DefaultUartWriter(const uint8_t *data, size_t length)
@@ -351,6 +354,7 @@ static void App_RunSensorRecovery(uint32_t now_ms)
 
 bool App_Init(uint32_t now_ms)
 {
+    s_app_init_stage = 1U;
     s_app_initialized = false;
     AppStatus_Init();
     if (!AppStatus_SetState(APP_STATE_INITIALIZING))
@@ -362,36 +366,42 @@ bool App_Init(uint32_t now_ms)
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
     }
+    s_app_init_stage = 2U;
     if (BspUart_Init() != BSP_UART_OK)
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
     }
-    if (BspI2c_Init() != BSP_I2C_OK)
-    {
-        (void)AppStatus_SetState(APP_STATE_FAULT);
-        return false;
-    }
+    s_app_init_stage = 3U;
+    /* 传感器总线未释放时仍启动通信和RTOS；扫描状态机会通过BSP恢复重试，
+     * 最终失败则进入DEGRADED，而不是让整机锁死在启动阶段。 */
+    (void)BspI2c_Init();
+    s_app_init_stage = 4U;
     if (!Logger_Init(App_UartLogWriter, LOG_LEVEL_INFO))
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
     }
+    s_app_init_stage = 5U;
     if (!SoftwareTimer_Init(&s_heartbeat_timer, now_ms, APP_HEARTBEAT_PERIOD_MS) ||
         !SoftwareTimer_Init(&s_health_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
         !SoftwareTimer_Init(
             &s_attitude_report_timer, now_ms, APP_ATTITUDE_REPORT_PERIOD_MS) ||
         !SoftwareTimer_Init(
             &s_calibration_report_timer, now_ms, APP_HEALTH_REPORT_PERIOD_MS) ||
+        !ConfigService_Init() ||
         !I2cScanner_Init(&s_i2c_scanner, App_I2cProbe) ||
         !MotionService_Init(now_ms) || !MotionService_StartCalibration() ||
         !ActuatorService_Init(now_ms) ||
         !ControlService_Init(now_ms) ||
+        !ConfigPersistence_Init(now_ms) ||
         !CommunicationService_Init(now_ms))
     {
         (void)AppStatus_SetState(APP_STATE_FAULT);
         return false;
     }
+
+    s_app_init_stage = 6U;
 
     HealthService_Init(now_ms);
     if (!AppStatus_SetState(APP_STATE_RUNNING))

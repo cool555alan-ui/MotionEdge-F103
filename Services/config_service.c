@@ -3,6 +3,7 @@
 #include <stddef.h>
 
 #include "app_config.h"
+#include "config_store.h"
 #include "logger.h"
 #include "motion_service.h"
 #include "sensor_service.h"
@@ -30,13 +31,14 @@ static bool IsValid(const RuntimeConfig_t *config)
 
 bool ConfigService_Init(void)
 {
-    s_config.sensor_sample_period_ms = APP_SENSOR_SAMPLE_PERIOD_MS;
-    s_config.telemetry_period_ms = APP_ATTITUDE_REPORT_PERIOD_MS;
-    s_config.low_pass_alpha_milli = APP_LOW_PASS_ALPHA_MILLI;
-    s_config.complementary_gyro_weight_milli =
-        APP_COMPLEMENTARY_GYRO_WEIGHT_MILLI;
-    s_config.log_level = APP_DEFAULT_LOG_LEVEL;
-    s_config.telemetry_enabled = APP_DEFAULT_TELEMETRY_ENABLED != 0U;
+    PersistentConfigV1_t defaults;
+    Config_GetFactoryDefaults(&defaults);
+    s_config.sensor_sample_period_ms = defaults.sensor_period_ms;
+    s_config.telemetry_period_ms = defaults.telemetry_period_ms;
+    s_config.low_pass_alpha_milli = defaults.low_pass_alpha_milli;
+    s_config.complementary_gyro_weight_milli = defaults.gyro_weight_milli;
+    s_config.log_level = defaults.log_level;
+    s_config.telemetry_enabled = defaults.telemetry_enabled != 0U;
     s_initialized = true;
     return true;
 }

@@ -25,6 +25,8 @@ add_executable(firmware_host_tests
     test_actuator_service.c
     test_pid_controller.c
     test_control_service.c
+    test_config_store.c
+    test_flash_stubs.c
     ../../Algorithms/low_pass_filter.c
     ../../Algorithms/attitude_estimator.c
     ../../Algorithms/pid_controller.c
@@ -44,6 +46,8 @@ add_executable(firmware_host_tests
     ../../Services/motion_service.c
     ../../Services/sensor_service.c
     ../../Services/config_service.c
+    ../../Services/config_store.c
+    ../../Services/config_persistence.c
     ../../Services/command_service.c
     ../../Services/telemetry_service.c
     ../../Services/actuator_service.c

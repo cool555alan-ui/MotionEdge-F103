@@ -14,7 +14,8 @@ from pathlib import Path
 from . import __version__, commands
 from .actuator_cli import add_actuator_parser, run_actuator
 from .capture import capture_session, load_telemetry
-from .commands import RuntimeConfig, decode_device_info, decode_motion, decode_status
+from .commands import (RuntimeConfig, decode_device_info, decode_motion,
+                       decode_persistence_status, decode_status)
 from .control_cli import add_control_parser, run_control
 from .device import DeviceClient
 from .errors import (EXIT_REPORT, EXIT_RUNTIME, EXIT_SUCCESS, MotionCtlError,
@@ -57,6 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
     config_set.add_argument("--filter-alpha", type=float)
     config_set.add_argument("--gyro-weight", type=float)
     config_set.add_argument("--sensor-ms", type=int); config_set.add_argument("--log-level", type=int)
+    persist = config_sub.add_parser("persist")
+    persist_sub = persist.add_subparsers(dest="persist_command", required=True)
+    for name in ("status", "save", "load", "factory-reset"):
+        item = persist_sub.add_parser(name); _connection(item)
+        if name == "factory-reset": item.add_argument("--yes", action="store_true")
     stream = subs.add_parser("stream"); stream_sub = stream.add_subparsers(dest="stream_command", required=True)
     for name in ("start", "stop"):
         item = stream_sub.add_parser(name); _connection(item)
@@ -206,9 +212,21 @@ def main(argv: list[str] | None = None) -> int:
             elif args.command == "status":
                 config = RuntimeConfig.unpack(client.request(commands.GET_CONFIG)); _print_status(decode_status(client.request(commands.GET_STATUS), stream_enabled=config.telemetry_enabled))
             elif args.command == "config":
-                before = RuntimeConfig.unpack(client.request(commands.GET_CONFIG))
-                if args.config_command == "get": _print(before)
+                if args.config_command == "persist":
+                    mapping = {"status": commands.CONFIG_PERSIST_STATUS,
+                               "save": commands.CONFIG_PERSIST_SAVE,
+                               "load": commands.CONFIG_PERSIST_LOAD,
+                               "factory-reset": commands.CONFIG_FACTORY_RESET}
+                    if args.persist_command == "factory-reset" and not args.yes:
+                        if input("危险操作：确认恢复出厂配置？输入 YES 继续：").strip() != "YES":
+                            raise RuntimeError("factory reset cancelled")
+                    payload = client.request(mapping[args.persist_command], retry=False)
+                    _print(decode_persistence_status(client.request(commands.CONFIG_PERSIST_STATUS))
+                           if args.persist_command != "status" else decode_persistence_status(payload))
+                elif args.config_command == "get":
+                    _print(RuntimeConfig.unpack(client.request(commands.GET_CONFIG)))
                 else:
+                    before = RuntimeConfig.unpack(client.request(commands.GET_CONFIG))
                     after = _apply_config(args, before); client.request(commands.SET_CONFIG, after.pack(), retry=False)
                     confirmed = RuntimeConfig.unpack(client.request(commands.GET_CONFIG)); _print({"before": before, "after": confirmed})
             elif args.command == "stream":

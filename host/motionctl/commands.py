@@ -32,6 +32,10 @@ CONTROL_SET_DIRECTION = 0x15
 CONTROL_GET_PID = 0x16
 CONTROL_SET_PID = 0x17
 CONTROL_SET_DEADBAND = 0x18
+CONFIG_PERSIST_STATUS = 0x19
+CONFIG_PERSIST_SAVE = 0x1A
+CONFIG_PERSIST_LOAD = 0x1B
+CONFIG_FACTORY_RESET = 0x1C
 MOTION_TELEMETRY = 0x20
 HEALTH_TELEMETRY = 0x21
 ACTUATOR_TELEMETRY = 0x23
@@ -51,6 +55,22 @@ STATUS_NAMES = {
     6: "UNSUPPORTED",
     7: "INTERNAL_ERROR",
 }
+
+
+def decode_persistence_status(payload: bytes) -> dict[str, object]:
+    if len(payload) != 37:
+        raise ValueError("persistence status payload must be 37 bytes")
+    source, schema, valid_slots, dirty = struct.unpack_from("<BBBB", payload)
+    generation = struct.unpack_from("<I", payload, 4)[0]
+    last_save = payload[8]
+    counters = struct.unpack_from("<7I", payload, 9)
+    return {"source": {0: "DEFAULTS", 1: "SLOT_A", 2: "SLOT_B"}.get(source, f"UNKNOWN({source})"),
+            "schema": schema, "valid_slot_count": valid_slots,
+            "dirty": bool(dirty), "generation": generation,
+            "last_save_result": last_save, "save_count": counters[0],
+            "factory_reset_count": counters[1], "crc_error_count": counters[2],
+            "invalid_record_count": counters[3], "unsupported_schema_count": counters[4],
+            "save_rate_limited_count": counters[5], "last_save_duration_ms": counters[6]}
 
 
 @dataclass(frozen=True)
@@ -176,7 +196,7 @@ CONTROL_FAULT_NAMES = {0: "NONE", 1: "STALE_MOTION", 2: "SENSOR_OFFLINE",
 class PidConfig:
     kp: float = 1.0
     ki: float = 0.0
-    kd: float = 0.0
+    kd: float = 0.05
     output_limit_us: int = 10
     derivative_alpha: float = 0.2
     integral_mode: int = 0

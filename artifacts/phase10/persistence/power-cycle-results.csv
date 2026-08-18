@@ -1,0 +1,6 @@
+step,action,expected,observed,status
+1,"factory reset then real power off for >2 s","DEFAULTS; generation 0; safe startup","DEFAULTS; generation 0; actuator disabled; armed false; owner NONE; PID disabled; PWM 1500 us",PASS
+2,"set deadband 1.5 deg; save SLOT_A; real power off for >2 s","SLOT_A generation 1; deadband 1.5 deg","SLOT_A; generation 1; deadband 1.5 deg; safe startup",PASS
+3,"set RAM-only deadband 2.0 deg; no save; real power off for >2 s","saved 1.5 deg restored","SLOT_A; generation 1; deadband 1.5 deg restored",PASS
+4,"set deadband 2.0 deg; save SLOT_B; real power off for >2 s","SLOT_B generation 2; deadband 2.0 deg","SLOT_B; generation 2; deadband 2.0 deg; safe startup",PASS
+5,"factory reset; real power off for >2 s","DEFAULTS; generation 0; deadband 1.0 deg","DEFAULTS; generation 0; deadband 1.0 deg; safe startup",PASS

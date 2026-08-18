@@ -43,7 +43,7 @@ try {
     $version = Get-Content -Raw -Encoding UTF8 `
         (Join-Path $ProjectRoot 'App\app_version.h')
     Add-Check 'Version includes Phase 4' `
-        ($version -match 'APP_VERSION_STRING\s+"0\.(?:4\.[1-9]|[5-9]\.[0-9]+)"') `
+        ($version -match 'APP_VERSION_STRING\s+"(?:0\.(?:4\.[1-9]|[5-9]\.[0-9]+)|[1-9][0-9]*\.[0-9]+\.[0-9]+)"') `
         'firmware version is 0.4.1 or later'
 
     $constants = Get-Content -Raw -Encoding UTF8 `
