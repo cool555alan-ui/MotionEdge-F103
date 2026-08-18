@@ -9,7 +9,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: test "${GITHUB_REF_NAME}" = "v$(cat VERSION)"
-      - run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi cmake ninja-build
+      - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build
+      - name: Install Arm GNU Toolchain 14.2.Rel1
+        shell: bash
+        run: |
+          set -euo pipefail
+          archive="arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi.tar.xz"
+          url="https://developer.arm.com/-/media/Files/downloads/gnu/14.2.rel1/binrel/${archive}"
+          curl --fail --location --retry 3 --output "${RUNNER_TEMP}/${archive}" "${url}"
+          echo "62a63b981fe391a9cbad7ef51b17e49aeaa3e7b0d029b36ca1e9c3b2a9b78823  ${RUNNER_TEMP}/${archive}" | sha256sum --check
+          tar -xJf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}"
+          echo "${RUNNER_TEMP}/arm-gnu-toolchain-14.2.rel1-x86_64-arm-none-eabi/bin" >> "${GITHUB_PATH}"
       - uses: actions/setup-python@v5
         with: {python-version: '3.12'}
       - run: python -m pip install -e ./host build
