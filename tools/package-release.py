@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and verify the auditable v1.0.0 release bundle."""
+"""Build and verify the auditable release bundle for the current VERSION."""
 import hashlib,json,os,shutil,subprocess,sys,tempfile,venv
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]; VERSION=(ROOT/"VERSION").read_text().strip(); OUT=ROOT/f"dist/release/v{VERSION}"
@@ -15,9 +15,9 @@ def main():
     for ext in ("hex","bin","elf"):shutil.copy2(base.with_suffix(f".{ext}"),OUT/f"motionedge-f103-v{VERSION}.{ext}")
     subprocess.run([sys.executable,"-m","build",str(ROOT/"host"),"--outdir",str(OUT)],check=True)
     shutil.copy2(ROOT/"config/motionedge-gateway.example.toml",OUT/"motionedge-gateway.example.toml")
-    shutil.copy2(ROOT/"node-red/flows/motionedge-phase07.json",OUT/"motionedge-node-red-v1.0.0.json")
+    shutil.copy2(ROOT/"node-red/flows/motionedge-phase07.json",OUT/f"motionedge-node-red-v{VERSION}.json")
     shutil.copy2(ROOT/"docs/quick-start-v1.0.md",OUT/"QUICKSTART.md")
-    shutil.copy2(ROOT/"RELEASE_NOTES_v1.0.0.md",OUT/"RELEASE_NOTES.md")
+    shutil.copy2(ROOT/f"RELEASE_NOTES_v{VERSION}.md",OUT/"RELEASE_NOTES.md")
     commit=subprocess.check_output(["git","rev-parse","HEAD"],cwd=ROOT,text=True).strip()
     manifest={"project":"MotionEdge-F103","version":VERSION,"git_commit":commit,"build_type":"Release","config_schema":1,
               "flash":{"physical_bytes":65536,"reserved_bytes":2048,"application_limit_bytes":63488,"slot_a":"0x0800F800","slot_b":"0x0800FC00","page_bytes":1024},

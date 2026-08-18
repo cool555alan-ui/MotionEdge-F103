@@ -71,7 +71,7 @@ class Phase10Tests(unittest.TestCase):
         )
 
     def test_version(self):
-        self.assertEqual(__version__, "1.0.0")
+        self.assertEqual(__version__, "1.0.1")
         self.assertEqual(Path("VERSION").read_text(encoding="utf-8").strip(), __version__)
 
     def test_persistence_status_codec(self):

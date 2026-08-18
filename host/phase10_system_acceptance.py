@@ -261,8 +261,10 @@ def main() -> int:
     try:
         info = client.request(commands.GET_DEVICE_INFO)
         version = f"{info[0]}.{info[1]}.{info[2]}"
-        if version != "1.0.0":
-            raise RuntimeError(f"固件版本不是 1.0.0：{version}")
+        expected_version = (root / "VERSION").read_text(encoding="utf-8").strip()
+        if version != expected_version:
+            raise RuntimeError(
+                f"固件版本不是 {expected_version}：{version}")
         status = decode_status(client.request(commands.GET_STATUS))
         if (status.app_state != "RUNNING" or status.sensor_state != "RUNNING"):
             raise RuntimeError(

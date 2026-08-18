@@ -31,6 +31,6 @@ jobs:
       - run: python tools/package-release.py
       - uses: softprops/action-gh-release@v2
         with:
-          name: MotionEdge-F103 v1.0.0
-          body_path: RELEASE_NOTES_v1.0.0.md
-          files: dist/release/v1.0.0/*
+          name: MotionEdge-F103 ${{ github.ref_name }}
+          body_path: RELEASE_NOTES_${{ github.ref_name }}.md
+          files: dist/release/${{ github.ref_name }}/*

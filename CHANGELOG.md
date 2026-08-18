@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+Reduced the Debug firmware footprint by compiling stable HAL and FreeRTOS runtime internals with `-Os` while application code remains at `-Og`. No user-facing features, protocol/schema, control, MQTT or hardware behavior changed.
+
 ## 1.0.0
 
 Dual-slot CRC-protected configuration persistence, safe factory reset, automated CI, resource gates and reproducible release packaging.

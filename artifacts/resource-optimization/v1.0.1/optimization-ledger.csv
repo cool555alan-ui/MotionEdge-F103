@@ -1,0 +1,7 @@
+optimization,files,debug_flash_before,debug_flash_after,debug_flash_saved,release_flash_before,release_flash_after,release_flash_saved,ram_before,ram_after,ram_saved,risk,tests,kept_or_reverted
+Debug runtime targets -Os; application remains -Og,CMakeLists.txt,62308,59240,3068,54296,54296,0,17832,17824,8,LOW,Host C; Debug/Release build; size/overlap; addr2line,KEPT
+Section garbage collection,none (already enabled),59240,59240,0,54296,54296,0,17824,17824,0,NONE,map/flags audit,EXISTING
+Replace snprintf/vsnprintf formatting chain,not applied,59240,59240,0,54296,54296,0,17824,17824,0,MEDIUM,map/nm/source audit only,NOT_APPLIED
+Logs/strings/const/dead code cleanup,not applied,59240,59240,0,54296,54296,0,17824,17824,0,MEDIUM,map/nm/source audit only,NOT_APPLIED
+Buffer/stack/queue/static RAM reduction,not applied,59240,59240,0,54296,54296,0,17824,17824,0,HIGH,bounds and HWM evidence audit,NOT_APPLIED
+LTO,not applied,59240,59240,0,54296,54296,0,17824,17824,0,MEDIUM,not run; headroom target already met,NOT_RUN

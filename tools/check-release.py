@@ -9,8 +9,8 @@ def version_values():
     gateway=re.search(r'__version__ = "([^"]+)"',(ROOT/"host/motionctl/__init__.py").read_text()).group(1)
     return (ROOT/"VERSION").read_text().strip(),firmware,package,gateway
 def main():
-    values=version_values(); checks={"version_consistency":len(set(values))==1 and values[0]=="1.0.0"}
-    required=["README.md","CHANGELOG.md","LICENSE","docs/config-persistence.md","docs/quick-start-v1.0.md","RELEASE_NOTES_v1.0.0.md",".github/workflows/ci.yml",".github/workflows/release.yml"]
+    values=version_values(); checks={"version_consistency":len(set(values))==1}
+    required=["README.md","CHANGELOG.md","LICENSE","docs/config-persistence.md","docs/quick-start-v1.0.md",f"RELEASE_NOTES_v{values[0]}.md",".github/workflows/ci.yml",".github/workflows/release.yml"]
     checks["required_files"]=all((ROOT/x).is_file() for x in required)
     checks["debug_size"]=subprocess.run([sys.executable,str(ROOT/"tools/check-firmware-size.py"),str(ROOT/"build/Debug/MotionEdge-F103.elf")]).returncode==0
     checks["release_size"]=subprocess.run([sys.executable,str(ROOT/"tools/check-firmware-size.py"),str(ROOT/"build/Release/MotionEdge-F103.elf")]).returncode==0

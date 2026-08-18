@@ -1,0 +1,57 @@
+{
+  "project": "MotionEdge-F103",
+  "version": "1.0.1",
+  "baseline_commit": "16a2ccac9fb876b70058382c963a64e696be0c66",
+  "baseline_tag": "v1.0.0",
+  "optimization_level": "A",
+  "status": "FINAL_VALIDATION_PENDING",
+  "memory": {
+    "debug": {
+      "flash_before_bytes": 62308,
+      "flash_after_bytes": 59240,
+      "flash_saved_bytes": 3068,
+      "flash_remaining_bytes": 4248,
+      "ram_before_bytes": 17832,
+      "ram_after_bytes": 17824,
+      "ram_saved_bytes": 8,
+      "ram_remaining_bytes": 1120,
+      "image_end": "0x0800E76C"
+    },
+    "release": {
+      "flash_before_bytes": 54296,
+      "flash_after_bytes": 54296,
+      "flash_saved_bytes": 0,
+      "flash_remaining_bytes": 9192,
+      "ram_before_bytes": 17824,
+      "ram_after_bytes": 17824,
+      "ram_saved_bytes": 0,
+      "ram_remaining_bytes": 1120,
+      "image_end": "0x0800D41C"
+    }
+  },
+  "config_flash": {
+    "reserved_bytes": 2048,
+    "start": "0x0800F800",
+    "end": "0x0800FFFF",
+    "overlap": "PASS"
+  },
+  "compatibility": {
+    "protocol": "UNCHANGED",
+    "config_schema": 1,
+    "mqtt_contract": "UNCHANGED",
+    "pid_parameters": "UNCHANGED",
+    "pwm_window": "UNCHANGED",
+    "rtos_task_frequencies": "UNCHANGED",
+    "hardware": "UNCHANGED"
+  },
+  "tests": {
+    "host_c": "PENDING_FINAL_CANDIDATE",
+    "python": "PENDING_FINAL_CANDIDATE",
+    "debug_build": "PASS",
+    "release_build": "PASS",
+    "phase10": "PENDING_FINAL_CANDIDATE",
+    "release_gate": "PENDING_FINAL_CANDIDATE",
+    "post_optimization_smoke": "PENDING"
+  },
+  "long_tests_rerun": false
+}

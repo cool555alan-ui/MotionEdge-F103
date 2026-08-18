@@ -1,0 +1,5 @@
+build,metric,before_bytes,after_bytes,saved_bytes,limit_bytes,remaining_before,remaining_after
+Debug,Flash,62308,59240,3068,63488,1180,4248
+Release,Flash,54296,54296,0,63488,9192,9192
+Debug,RAM,17832,17824,8,18944,1112,1120
+Release,RAM,17824,17824,0,18944,1120,1120

@@ -7,7 +7,7 @@ MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入
 - 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
 - 构建系统：CMake + GCC
 - 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
-- 当前固件、Python工具与Gateway版本：`1.0.0`
+- 当前固件、Python工具与Gateway版本：`1.0.1`
 
 ## v1.0 architecture and status
 
