@@ -1,184 +1,153 @@
 # MotionEdge-F103
 
-MotionEdge-F103 是基于 STM32F103C8T6 和 MPU6050/MPU6500兼容驱动的嵌入式运动控制基础项目。当前实板器件为MPU6500（WHO_AM_I=`0x70`）。
+## 基于 STM32 的姿态感知与物联网控制平台
 
-- MCU：STM32F103C8T6
-- 传感器：MPU6500
-- 开发环境：STM32CubeMX + STM32CubeIDE for Visual Studio Code
-- 构建系统：CMake + GCC
-- 不使用 Keil、PlatformIO 或传统 STM32CubeIDE 桌面版
-- 当前固件、Python工具与Gateway版本：`1.0.1`
+MotionEdge-F103 基于 STM32F103C8T6 与 MPU6500，在 MCU 本地完成 100 Hz 姿态融合和 PID 控制计算，并通过 Python Gateway、MQTT 与 Node-RED 实现设备诊断、运行时配置和实时监控。当前正式固件、motionctl 与 Gateway 版本均为 `1.0.1`。
 
-## v1.0 architecture and status
+> 控制链定义：姿态感知 → PID 控制计算 → 舵机输出。SG90 不会带动 MPU6500，因此这是 `PID-based attitude-driven servo control`，不是外部机械姿态反馈闭环或自平衡系统。
 
-`MPU6500 → I²C BSP → Sensor Service → Calibration/Low Pass → Complementary Attitude → Roll/Pitch → PID Attitude Control → Actuator Safety → TIM3 PWM → SG90`
+## 核心功能
 
-FreeRTOS任务频率为Sensor 100 Hz、Communication约500 Hz、Telemetry 10 Hz、Health 1 Hz。二进制协议连接STM32与motionctl/Python Gateway，再连接本机Mosquitto和Node-RED。Runtime Config通过ConfigStore写入双Flash槽；CI覆盖Host C、Python、Debug/Release固件、Size Gate和Release Gate。
+- MPU6500 六轴采集、500 样本静态校准、低通与互补滤波，输出 Roll/Pitch。
+- FreeRTOS 四任务调度；SensorTask 同步执行采样、姿态估计和 100 Hz 控制，不额外创建 ControlTask。
+- 完整 PID 模块，最终采用 `Kp=1.0, Ki=0, Kd=0.05` 的 PD 配置；支持轴、方向、零位、死区、D 项滤波与输出限幅。
+- SG90 显式 Arm、单一 Owner、命令超时、ESTOP、故障安全和 1450–1550 µs 绝对 PWM 窗口。
+- CRC16 二进制串口协议、Python `motionctl`、本地 Mosquitto Gateway 和 Node-RED 波形/配置界面。
+- 双槽 Flash 配置持久化：CRC、generation、commit marker、Factory Reset 和安全启动。
+- Host C/Python 测试、Debug/Release 构建、资源门禁、GitHub Actions 与可复现 Release。
 
-Phase 1～7均PASS；Phase 8为PASS / REFERENCE_LIMITED；Phase 9、Phase 9B均PASS；Phase 10的软件门禁和真实硬件报告见`artifacts/phase10/final-validation/`。控制功能的准确名称是“基于PID的姿态交互式舵机控制”（PID-based attitude-driven servo control），并非外部机械姿态闭环。
+## 系统架构
 
-## Phase 1: Firmware Foundation
+```mermaid
+flowchart LR
+    IMU[MPU6500] -->|I²C| SENSOR[SensorService<br/>Calibration + Filter]
+    SENSOR --> ATT[Roll / Pitch]
+    ATT --> CTRL[ControlService<br/>PID / final PD config]
+    CTRL --> SAFE[Actuator Safety]
+    SAFE -->|TIM3 PWM| SERVO[SG90]
+    MCU[STM32F103] <-->|Binary Protocol / UART| GW[Python motionctl / Gateway]
+    GW <-->|MQTT| MQ[Local Mosquitto]
+    MQ <--> NR[Node-RED]
+    CFG[Runtime Config] <--> FLASH[Dual-slot Flash]
+    CFG --> MCU
+```
 
-第一阶段建立了以下固件基础能力：
+完整分层、实时数据流、IoT 和 RTOS 图见 [`docs/architecture.md`](docs/architecture.md)。
 
-- PC13 低电平有效板级 LED 封装
-- USART1 有限超时日志输出接口
-- 与 HAL 解耦的固定缓冲区 Logger
-- 支持 32 位毫秒计数器回绕的软件定时器
-- 应用状态管理
-- 运行时间、循环、心跳和日志错误健康统计
-- Windows 主机侧纯 C 单元测试
-- STM32 CMake Debug 交叉编译
+## 实机与演示
 
-2026-08-02 已在 STM32F103C8T6 实板完成 ST-LINK 连接、下载校验、复位启动和
-USART1 日志验证。健康日志中的心跳计数正常递增；PC13 LED 的实际亮灭极性仍需目视确认。
+仓库当前没有可确认来源的整机照片，因此不使用生成图片冒充实物。建议 README 实机主图拍摄同一画面中的 STM32F103 最小系统板、MPU6500、SG90、ST-LINK、CH340、舵机独立 5 V 电源及共地接线；拍摄规范见 [`docs/demo/screenshot-plan.md`](docs/demo/screenshot-plan.md)。
 
-详细设计和验证边界见
-[第一阶段固件基础框架](docs/phase-01-firmware-foundation.md)。
+| 姿态参考比较* | P / PD PWM 输出比较 |
+|---|---|
+| ![Roll reference comparison](artifacts/phase08/final-report/figures/static-roll-comparison.png) | ![P versus PD](artifacts/phase09/pid-attitude/p-vs-pd.png) |
 
-## Phase 2: I²C and MPU6500
+现场 5 分钟流程见 [`docs/demo/demo-script.md`](docs/demo/demo-script.md)，故障恢复见 [`docs/demo/demo-recovery.md`](docs/demo/demo-recovery.md)。
 
-第二阶段增加了：
+## 核心指标
 
-- I²C1 BSP 寄存器读写和有限超时设备探测
-- 每次主循环仅探测一个地址的非阻塞 I²C 扫描状态机
-- 与 STM32 HAL 解耦的 MPU6500 驱动
-- `WHO_AM_I` 身份读取与校验
-- 电源管理寄存器唤醒
-- 加速度计和陀螺仪六轴原始数据读取
-- 使用模拟 I²C 总线的 Windows 主机测试
+| 指标 | 结果 |
+|---|---:|
+| Attitude + Control | 100 Hz |
+| Roll MAE* | 0.352° |
+| Pitch MAE* | 0.375° |
+| PWM output std reduction | 54.4%（5.555 → 2.535 µs） |
+| Hardware validation | 600 s+ |
+| Stable MQTT Motion | 4934 / 4934 |
+| Gateway → Node-RED local P95 | 2 ms |
+| v1.0.1 Debug Flash | 59240 B，节省 3068 B |
 
-2026-08-02 实板验证发现 I²C 地址 `0x68`、`WHO_AM_I=0x70`，传感器能够唤醒并持续
-输出六轴数据。验证证据见 `artifacts/hardware-validation/`。
+\* `REFERENCE_LIMITED`：参考为 iPhone 内置水平仪且测量不确定度未知；MAE 是相对该参考的工程比较，不是绝对传感器精度。全部指标和证据见 [`PROJECT_METRICS`](docs/PROJECT_METRICS.md)。
 
-详细说明见 [第二阶段 I²C 与 MPU6500](docs/phase-02-i2c-mpu6500.md)。
+## 技术栈
 
-## Phase 3: Calibration and Attitude Pipeline
+| 层 | 技术 |
+|---|---|
+| Hardware | STM32F103C8T6、MPU6500、SG90、ST-LINK、CH340 |
+| Firmware | C11、STM32 HAL、FreeRTOS CMSIS-RTOS2、CMake、Arm GNU Toolchain 14.2.Rel1 |
+| Algorithms | 静态零偏校准、低通滤波、互补姿态融合、PID/PD |
+| Protocol | Binary Protocol v1、CRC16-CCITT-FALSE、USART1 |
+| Host / IoT | Python、pyserial、Paho MQTT、Mosquitto、Node-RED |
+| Engineering | Host C/Python tests、GitHub Actions、size/overlap gate、versioned release |
 
-第三阶段完成了：
+## 快速运行
 
-- 100 Hz缩放样本采集与数据质量检查
-- 500样本非阻塞静止校准和RAM偏差结果
-- 六轴一阶低通滤波
-- 加速度Roll/Pitch、陀螺仪积分和互补滤波
-- 0.01°整数姿态输出和100 ms限频CSV遥测
-- Python模拟、校验、汇总、回放和串口记录工具
-- C主机算法测试和Python工具测试
-- STM32 CMake Debug交叉编译
-
-实板已完成500样本静止校准、CSV姿态输出以及左右/前后倾斜响应验证。静止加速度模长
-均值约为1 g，Roll/Pitch随动作明显变化；绝对角度精度、温漂和长期漂移仍待治具及长时间测试。
-
-详细说明见[第三阶段校准与姿态数据链](docs/phase-03-calibration-attitude.md)。
-
-## Phase 4: Binary Device Protocol
-
-第四阶段增加 CRC16-CCITT-FALSE、固定内存二进制帧、字节环形缓冲区、可恢复流式
-Parser、统一命令响应、RAM 运行时配置、二进制 Motion/Health 遥测，以及
-`python -m motionctl` 设备 CLI 和无硬件模拟器。协议模式启用后 USART1 只发送
-二进制帧，避免与普通日志和 CSV 混流。
-
-软件协议、模拟设备、主机测试和 STM32 GCC 交叉编译已完成。
-
-2026-08-05 实板二进制命令验证：PING、设备信息、状态、运行时配置读写、最新姿态查询、
-流控制全部 PASS；串口解析错误、CRC 错误、RX 溢出均为 0。二进制帧与文本日志/CSV 严格
-隔离，协议模式下未出现混流。
-
-详细格式和验证边界见[协议规范](docs/protocol-specification.md)和
-[第四阶段记录](docs/phase-04-device-protocol.md)。
-
-## Phase 5: FreeRTOS Scheduling Migration
-
-第五阶段使用CubeMX生成的FreeRTOS 10.3.1和CMSIS-RTOS2，将原裸机协作调度迁移为
-SensorTask、CommunicationTask、TelemetryTask和HealthTask。驱动、算法、协议和服务
-保持RTOS无关；任务、命令队列、互斥锁、事件标志及运动快照使用静态存储。
-
-2026-08-05 实板验收通过（41 PASS / 0 WARN / 0 FAIL），关键实测数据：
-
-- **任务频率**：SensorTask 100.003 Hz、CommunicationTask 500.012 Hz、
-  TelemetryTask 10.001 Hz、HealthTask 1.000 Hz
-- **600 秒独立稳定性**：6001 帧，100 ms 固定间隔，sequence 固定 +10，
-  丢帧/回退/解析错误均为 0；状态全程 RUNNING，DEGRADED/FAULT 0 次
-- **稳定段 Deadline miss**：0/0/0/0（校准期间 SensorTask 有少量 transient miss，
-  校准完成后清零）
-- **栈高水位**：最低剩余 284 B（TelemetryTask），所有任务栈余量充足
-- **堆最低剩余**：2,440 B；栈溢出/malloc 失败 0
-- **传感器掉线恢复**：断开→DEGRADED→重新识别→唤醒→校准→RUNNING，全自动
-- **二进制命令**：PING/INFO/STATUS/CONFIG/MOTION/STREAM 全部 PASS
-- **资源**：Debug Flash 45,620 B（69.6%），RAM 16,328 B（79.7%）
-
-验证证据见 `artifacts/rtos-validation/rtos-validation-report.md` 和
-`stability-soak-summary.json`。
-
-详细说明见[第五阶段迁移记录](docs/phase-05-freertos-migration.md)和
-[RTOS任务设计](docs/rtos-task-design.md)。
-
-## Phase 6: Python Device Tools
-
-第六阶段将现有二进制协议包装为`motionctl 0.6.0`设备工具，提供端口枚举、设备诊断、
-信息/状态/配置、校准、流控制、实时监视、原子采集、离线校验、一键会话及自动报告。
-协议、Transport、设备请求、数据模型、统计、规则、报告和模拟器职责独立；固件协议未提供
-的字段明确显示`NOT_AVAILABLE`。
+硬件接线：MPU6500 I²C 接 PB6/PB7，CH340 接 USART1 PA9/PA10，SG90 信号接 PA6；所有设备共地，SG90 使用独立稳压 5 V。
 
 ```powershell
 python -m pip install -e .\host
 python -m motionctl ports
-python -m motionctl doctor --port COM4
-python -m motionctl session --port COM4 --duration 60 --output artifacts/phase06/final-validation
+python -m motionctl doctor --port COM4 --baud 115200
+python -m motionctl monitor --port COM4 --duration 30
 ```
 
-采集链同时保存设备时间和主机单调时间，自动生成Markdown、JSON、metrics CSV、姿态曲线
-和遥测间隔曲线。模拟器测试、离线报告测试和真实串口验收在证据中严格区分。
-
-2026-08-05 使用COM4上的CH340和真实STM32F103C8T6/MPU6500完成最终验收：逻辑PING
-100/100成功（1次线路瞬态超时由只读安全重试恢复）；干净采集60.0秒、601帧、
-10.0167 Hz，设备时间间隔固定100 ms，sequence固定+10，丢帧、重复、回退、主机CRC和
-Parser错误均为0。Roll范围-27.04°～33.35°，Pitch范围-40.58°～25.81°，平均加速度
-模长1001.75 mg；串口关闭1秒后重新打开并PING成功。最终证据位于
-`artifacts/phase06/final-validation/`。
-
-详细说明见[Phase 6设备工具](docs/phase-06-python-device-tools.md)、
-[CLI参考](docs/motionctl-cli-reference.md)和[报告格式](docs/automated-report-format.md)。
-下一阶段为Phase 7 MQTT网关与Node-RED，本阶段不包含这两项功能。
-
-## Phase 7: MQTT Gateway and Node-RED
-
-Phase 7 keeps firmware at `0.6.0` and updates the Windows `motionctl` gateway to `0.7.0`. The path is MPU6500 -> STM32F103/FreeRTOS -> CRC16 serial protocol -> Python gateway -> local Mosquitto -> Node-RED. Topic, startup, dashboard, and validation details are in [the gateway guide](docs/phase-07-mqtt-gateway.md), [topic contract](docs/mqtt-topic-contract.md), [Node-RED guide](docs/node-red-dashboard.md), and [validation method](docs/phase-07-validation-method.md).
-
-## Phase 8: attitude characterization
-
-Phase 8 keeps firmware at `0.6.0` and updates `motionctl` to `0.8.0`. It adds real-device Roll/Pitch static accuracy, noise, drift, manual dynamic comparison, online RuntimeConfig candidate validation, transparent ranking, and report generation. The MPU6500 is a six-axis IMU, so absolute Yaw is intentionally outside the observable boundary. Run `python -m motionctl characterize --help`, `python -m motionctl tune --help`, and `tools\check-phase8.ps1` for the reproducible workflow.
-
-The isolated development broker binds only to `127.0.0.1:1884`; TLS is disabled, so it is not a public-cloud or production deployment. Phase 8 is attitude accuracy and parameter tuning, not actuator control.
-
-## Phase 9A: safe PWM actuator control
-
-Phase 9A adds CubeMX TIM3_CH1/PA6 50 Hz PWM, explicit Arm, a single control Owner, integer angle mapping, pulse/angle limits, 500 µs/s slew, a 1000 ms command timeout, ESTOP, App fault interlock, actuator protocol/telemetry, `motionctl 0.9.0`, MQTT commands, and manual-only Node-RED controls. PWM remains disabled after every boot. SG90实机动作包络为1400–1600 µs，正式安全窗口保守设为1450/1500/1550 µs；软件角度映射不是实测机械角度。
-
-## Phase 9B: PID-based attitude-driven servo control
-
-Phase 9B使用单个MPU6500测量用户手持面包板的Roll或Pitch相对零位，在现有SensorTask中以100 Hz运行通用PID，并将输出解释为相对1500 µs的PWM偏移。输出始终经过ActuatorService，绝对限制保持1450–1550 µs；默认使用P-only、Ki=0和±10 µs输出限制。MQTT与Node-RED仅负责配置、启停和10 Hz监控，不属于实时控制路径。
-
-当前SG90动作不会反向改变同一MPU6500的姿态，因此本功能是“基于PID的姿态交互式执行器控制”，不是外部姿态机械闭环、自平衡平台或姿态稳定云台。详见[Phase 9B姿态交互控制](docs/pid-attitude-control.md)、[Phase 9执行器控制](docs/phase-09-actuator-control.md)、[舵机标定](docs/servo-pwm-calibration.md)和[安全模型](docs/actuator-safety-model.md)。
+启动本地 IoT 链路：
 
 ```powershell
-.\tools\start-phase07-broker.ps1
-.\tools\start-phase07-node-red.ps1
-.\tools\import-node-red-phase07.ps1
-python -m motionctl gateway run --config .\config\motionedge-gateway.toml
+powershell -ExecutionPolicy Bypass -File tools/start-phase07-broker.ps1
+powershell -ExecutionPolicy Bypass -File tools/start-phase07-node-red.ps1
+python -m motionctl gateway run --config config/motionedge-gateway.toml
 ```
 
-## 常用命令
+详细步骤见 [`docs/quick-start-v1.0.md`](docs/quick-start-v1.0.md) 和 [`motionctl CLI`](docs/motionctl-cli-reference.md)。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\test-host.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\build.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase1.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase2.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\test-python.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase3.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase4.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase5.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\check-phase6.ps1
-powershell -ExecutionPolicy Bypass -File .\tools\test-phase6.ps1
+## 安全边界
+
+- 上电不恢复 Arm、Owner 或 PID Enable；默认 Control Disabled、Actuator Disarmed、Owner NONE、PWM 1500 µs。
+- 舵机绝对窗口 1450 / 1500 / 1550 µs，PID 输出限制为 ±10 µs；不得为演示扩大。
+- Arm 前确认舵机无负载、无遮挡、ESTOP 可触达，并使用独立 5 V 电源和共地。
+- 传感器离线、姿态过期、App Fault、执行器故障和 ESTOP 都会进入安全状态。
+- MQTT 是本地原型，无 TLS；不得直接暴露公网。实时控制留在 STM32，Broker/Gateway 掉线不接管 PID。
+
+## 工程结构
+
+```text
+App/RTOS/          应用装配与四个静态 FreeRTOS 任务
+Services/          传感、运动、控制、执行器、通信、配置服务
+Algorithms/        低通、姿态估计、PID（无 HAL 依赖）
+Devices/ + BSP/    MPU6500 与 HAL 外设适配
+Middleware/        帧协议、解析器、CRC、环形缓冲、日志
+host/motionctl/     Python CLI、采集、报告、MQTT Gateway
+node-red/           本地监控与配置 Flow
+Tests/Host/         Firmware 主机 C 测试
+host/tests/         Python 测试
+artifacts/          历史实机与发布证据
+docs/               设计、展示、复试与证据索引
 ```
+
+推荐代码阅读路线见 [`docs/code-tour.md`](docs/code-tour.md)。
+
+## Validation
+
+| Area | Result |
+|---|---|
+| Attitude sampling | 100 Hz |
+| Roll/Pitch MAE | 0.352° / 0.375°* |
+| RTOS soak | PASS |
+| MQTT stable messages | 4934 / 4934 |
+| Local P95 | 2 ms |
+| PID output std | 5.555 → 2.535 µs（54.4%） |
+| Power-cycle persistence | PASS |
+| CI | PASS |
+| v1.0.1 smoke | PASS |
+
+验证入口：[`EVIDENCE_INDEX`](docs/EVIDENCE_INDEX.md)；完整技术报告：[`MotionEdge-F103-technical-report.md`](docs/MotionEdge-F103-technical-report.md)。
+
+## Release
+
+- 当前版本：[`v1.0.1`](https://github.com/cool555alan-ui/MotionEdge-F103/releases/tag/v1.0.1)
+- Firmware / motionctl / Gateway：`1.0.1`
+- Config Schema：`1`
+- Debug：Flash 59240 / 63488 B；RAM 17824 / 18944 B
+- Release：Flash 54296 / 63488 B；RAM 17824 / 18944 B
+
+## Limitations
+
+- 单 MPU6500 手持输入；没有舵机输出到传感器姿态的机械外环。
+- 六轴 IMU 无磁力计，未提供可长期约束的绝对 Yaw。
+- Phase 8 手机水平仪参考为 `REFERENCE_LIMITED`。
+- PWM 电气抖动 `NOT_TESTED`；Servo 电流遥测 `NOT_AVAILABLE`。
+- 本地 MQTT 无 TLS；600 s/1800 s 结果不是工业寿命或长期可靠性声明。
+- STM32F103C8 资源有限；v1.0.1 RAM 余量 1120 B。
+
+术语边界和后续方向见 [`docs/TERMINOLOGY.md`](docs/TERMINOLOGY.md) 与 [`docs/interview/limitations.md`](docs/interview/limitations.md)。
