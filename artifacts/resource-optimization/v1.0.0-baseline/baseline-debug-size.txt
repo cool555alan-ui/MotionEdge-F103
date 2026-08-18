@@ -1,0 +1,12 @@
+Build: Debug
+Toolchain: Arm GNU Toolchain 14.2.Rel1 (GCC 14.2.1)
+Compile flags: -DDEBUG -DSTM32F103xB -DUSE_HAL_DRIVER -fdata-sections -ffunction-sections -fstack-usage -O0 -g3 -Og
+Linker flags: -mcpu=cortex-m3  -T "C:/STM32/MotionEdge-F103/STM32F103XX_FLASH.ld" --specs=nano.specs -Wl,-Map=MotionEdge-F103.map -Wl,--gc-sections -Wl,--print-memory-usage -Wl,--undefined=config_slots_reserve -Wl,--section-start=.config_slots=0x0800F800 -Wl,--defsym=__config_slot_a_start__=0x0800F800 -Wl,--defsym=__config_slot_a_end__=0x0800FC00 -Wl,--defsym=__config_slot_b_start__=0x0800FC00 -Wl,--defsym=__config_slot_b_end__=0x08010000
+.text=59884
+.rodata=2036
+.data=104
+.bss=16188
+._user_heap_stack=1540
+.config_slots=2048
+Application Flash=62308/63488 remaining=1180
+RAM=17832/18944 remaining=1112
