@@ -1,7 +1,11 @@
 import json
+import sys
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+
+HOST = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(HOST))
 
 from motionctl import __version__, commands
 from motionctl.cli import build_parser
